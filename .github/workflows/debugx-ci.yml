@@ -1,0 +1,81 @@
+# DebugX CI/CD Workflow
+# Automatically updates bug status in DebugX when code is pushed
+
+name: DebugX CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      # Step 3: Install dependencies
+      - name: Install Dependencies
+        run: npm install
+
+      # Step 4: Run tests
+      - name: Run Tests
+        id: tests
+        run: npm test
+        continue-on-error: true
+
+      # Step 5: Notify DebugX on SUCCESS
+      - name: Notify DebugX (Success)
+        if: steps.tests.outcome == 'success'
+        run: |
+          # Extract bug ID from commit message
+          # Convention: "fix: #BUGID description"
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          BUG_ID=$(echo "$COMMIT_MSG" | grep -oP '(?<=#)[a-f0-9]{24}')
+
+          if [ -n "$BUG_ID" ]; then
+            curl -X POST ${{ secrets.DEBUGX_API_URL }}/api/v1/ci/webhook \
+              -H "Content-Type: application/json" \
+              -H "X-Hub-Signature-256: sha256=${{ secrets.GITHUB_WEBHOOK_SECRET }}" \
+              -d '{
+                "bugId": "'"$BUG_ID"'",
+                "status": "success",
+                "commit": "${{ github.sha }}",
+                "branch": "${{ github.ref_name }}",
+                "triggeredBy": "${{ github.actor }}",
+                "buildUrl": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              }'
+            echo "✅ DebugX notified: Bug $BUG_ID resolved"
+          else
+            echo "ℹ️ No bug ID found in commit message. Skipping DebugX notification."
+          fi
+
+      # Step 6: Notify DebugX on FAILURE
+      - name: Notify DebugX (Failure)
+        if: steps.tests.outcome == 'failure'
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          BUG_ID=$(echo "$COMMIT_MSG" | grep -oP '(?<=#)[a-f0-9]{24}')
+
+          if [ -n "$BUG_ID" ]; then
+            curl -X POST ${{ secrets.DEBUGX_API_URL }}/api/v1/ci/webhook \
+              -H "Content-Type: application/json" \
+              -d '{
+                "bugId": "'"$BUG_ID"'",
+                "status": "failure",
+                "commit": "${{ github.sha }}",
+                "branch": "${{ github.ref_name }}",
+                "triggeredBy": "${{ github.actor }}"
+              }'
+            echo "❌ DebugX notified: Bug $BUG_ID build failed"
+          fi
