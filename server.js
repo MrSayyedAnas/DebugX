@@ -55,7 +55,7 @@ let server; // Keep a reference for graceful shutdown
  *   2. Start HTTP server
  */
 const bootstrap = async () => {
-  logger.info("Starting DebugX API...");
+  logger.info("Starting DebugX API... v1.0.0");
 
   // Step 1: Connect to MongoDB
   await connectDB();
