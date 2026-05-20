@@ -25,7 +25,7 @@ const logger = require("../utils/logger");
  * Skips verification in development if no secret is configured.
  */
 const verifyWebhookSignature = (req, res, next) => {
-  const secret = process.env.GITHUB_WEBHOOK_SECRET;
+  const secret = process.env.WEBHOOK_SECRET;
 
   // Skip verification in development if secret not configured
   if (!secret) {
@@ -50,7 +50,7 @@ const verifyWebhookSignature = (req, res, next) => {
 
   // Compute expected signature
   const hmac = crypto.createHmac("sha256", secret);
-  const digest = "sha256=" + hmac.update(JSON.stringify(req.body)).digest("hex");
+  const digest = "sha256=" + hmac.update(req.rawBody || JSON.stringify(req.body)).digest("hex");
 
   // Compare signatures securely (prevents timing attacks)
   const sigBuffer = Buffer.from(signature);

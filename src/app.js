@@ -76,7 +76,12 @@ app.use(globalLimiter);
 // ── Body Parsing ─────────────────────────────────────────────────────────────
 
 // Parse incoming JSON (limit prevents large payload attacks)
-app.use(express.json({ limit: "10kb" }));
+app.use(express.json({
+  limit: "10kb",
+  verify: (req, res, buf) => {
+    req.rawBody = buf.toString();
+  }
+}));
 
 // Parse URL-encoded form data
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
