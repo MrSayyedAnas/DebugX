@@ -1,13 +1,28 @@
+# Dependencies
 node_modules/
-.env
+client/node_modules/
+
+# Build outputs
 dist/
+client/dist/
+
+# Environment variables
+.env
+
+# Logs
 *.log
+
+# OS files
 .DS_Store
-coverage/
-ai-service/models/
+
+# Python (AI service)
 __pycache__/
+*.pyc
 *.pkl
-*.pyc
+
+# ML Models
+ai-service/models/
 models/
-__pycache__/
-*.pyc
+
+# Testing
+coverage/
