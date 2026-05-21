@@ -1,24 +1,3 @@
-/**
- * @file app.js
- * @description Express application factory.
- *
- * WHY SEPARATE FROM server.js:
- *   app.js builds the Express app with all middleware and routes.
- *   server.js imports app.js and starts the HTTP server.
- *
- *   This means in tests, we can do:
- *     const app = require('./app');
- *     supertest(app).get('/api/health')
- *   ...without actually binding to a port.
- *
- * MIDDLEWARE ORDER MATTERS:
- *   1. Security (helmet, cors, rate limiting)
- *   2. Parsing (json, urlencoded)
- *   3. Logging (morgan)
- *   4. Routes
- *   5. Error handling (MUST be last)
- */
-
 "use strict";
 
 const express = require("express");
@@ -30,22 +9,10 @@ const rateLimit = require("express-rate-limit");
 const config = require("./config/env");
 const logger = require("./utils/logger");
 
-// ── Initialize Express App ───────────────────────────────────────────────────
 const app = express();
 
-// ── Security Middleware ──────────────────────────────────────────────────────
+// ── CORS ─────────────────────────────────────────────────────────────────────
 
-/**
- * Helmet sets secure HTTP headers automatically.
- * Protects against common web vulnerabilities:
- * (XSS, clickjacking, MIME sniffing, etc.)
- */
-app.use(helmet());
-
-/**
- * CORS configuration.
- * In production, replace '*' with your actual frontend origin.
- */
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
@@ -53,7 +20,7 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 const corsMiddleware = cors({
-  origin: function (origin, callback) {
+  origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -65,75 +32,61 @@ const corsMiddleware = cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 });
 
-// Handle OPTIONS pre-flight for all routes — must be BEFORE route definitions
 app.use(corsMiddleware);
 app.options("/{*path}", corsMiddleware);
 
-/**
- * Global rate limiter — brute-force protection.
- * 100 requests per 15 minutes per IP.
- *
- * Auth routes will get a stricter limiter applied directly.
- */
+// ── Security ──────────────────────────────────────────────────────────────────
+
+app.use(helmet());
+
+// ── Rate Limiting ─────────────────────────────────────────────────────────────
+
+const rateLimitHandler = (req, res) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.status(429).json({
+    success: false,
+    statusCode: 429,
+    message: "Too many requests from this IP. Please try again after 15 minutes.",
+  });
+};
+
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 500,                                              // generous for demo/presentation
   standardHeaders: true,
   legacyHeaders: false,
-  // ✅ Add this — attach CORS headers even on 429 responses
-  handler: (req, res) => {
-    res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.status(429).json({
-      success: false,
-      statusCode: 429,
-      message: "Too many requests from this IP. Please try again after 15 minutes.",
-    });
-  },
+  skip: (req) => req.path.startsWith("/api/v1/auth"),   // auth has its own limiter
+  handler: rateLimitHandler,
 });
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: rateLimitHandler,
+});
+
 app.use(globalLimiter);
 
-// ── Body Parsing ─────────────────────────────────────────────────────────────
+// ── Body Parsing ──────────────────────────────────────────────────────────────
 
-// Parse incoming JSON (limit prevents large payload attacks)
 app.use(express.json({
   limit: "10kb",
-  verify: (req, res, buf) => {
-    req.rawBody = buf.toString();
-  }
+  verify: (req, res, buf) => { req.rawBody = buf.toString(); },
 }));
-
-// Parse URL-encoded form data
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 
-// ── HTTP Request Logging ─────────────────────────────────────────────────────
+// ── HTTP Logging ──────────────────────────────────────────────────────────────
 
-/**
- * Morgan logs each HTTP request.
- * Uses 'dev' format in development (colorized, concise).
- * Uses 'combined' format in production (Apache-style, full details).
- *
- * Feeds into our Winston logger stream so all logs go to one place.
- */
-const morganFormat = config.isDev ? "dev" : "combined";
-app.use(
-  morgan(morganFormat, {
-    stream: {
-      // Pipe morgan output into winston
-      write: (message) => logger.http(message.trim()),
-    },
-    // Skip logging health check endpoints to reduce noise
-    skip: (req) => req.url === "/api/health",
-  })
-);
+app.use(morgan(config.isDev ? "dev" : "combined", {
+  stream: { write: (message) => logger.http(message.trim()) },
+  skip: (req) => req.url === "/api/health",
+}));
 
-// ── Routes ───────────────────────────────────────────────────────────────────
+// ── Health Check ──────────────────────────────────────────────────────────────
 
-/**
- * Health check endpoint.
- * Used by load balancers, Docker health checks, and CI/CD pipelines.
- * Always returns 200 if the server is running.
- */
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
@@ -143,32 +96,17 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-/**
- * API Routes
- * New route files are registered here as each phase is built.
- */
-// ── Phase 2: Auth ─────────────────────────────────────────────────────────────
-app.use("/api/v1/auth", require("./routes/auth.routes"));
+// ── Routes ────────────────────────────────────────────────────────────────────
 
-// ── Phase 3: Core ────────────────────────────────────────────────────────────
-app.use("/api/v1/projects", require("./routes/project.routes"));
-app.use("/api/v1/bugs",     require("./routes/bug.routes"));
+app.use("/api/v1/auth",      authLimiter, require("./routes/auth.routes"));
+app.use("/api/v1/projects",               require("./routes/project.routes"));
+app.use("/api/v1/bugs",                   require("./routes/bug.routes"));
+app.use("/api/v1/stats",                  require("./routes/stats.routes"));
+app.use("/api/v1/ci",                     require("./routes/ci.routes"));
+app.use("/api/v1/analytics",              require("./routes/analytics.routes"));
 
-// ── Phase 4: Stats & Search ─────────────────────────────────────────────────
-app.use("/api/v1/stats",    require("./routes/stats.routes"));
+// ── 404 ───────────────────────────────────────────────────────────────────────
 
-// ── Phase 6: CI/CD Integration ──────────────────────────────────────────────
-app.use("/api/v1/ci", require("./routes/ci.routes"));
-
-// ── Phase 4.5: Developer Analytics ─────────────────────────────────────────
-app.use("/api/v1/analytics", require("./routes/analytics.routes"));
-
-// ── 404 Handler ──────────────────────────────────────────────────────────────
-
-/**
- * Catch-all for any route that doesn't match above.
- * Must be AFTER all valid routes.
- */
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -177,25 +115,15 @@ app.use((req, res) => {
   });
 });
 
-// ── Centralized Error Handler ─────────────────────────────────────────────────
+// ── Error Handler ─────────────────────────────────────────────────────────────
 
-/**
- * Express identifies error-handling middleware by its 4-parameter signature: (err, req, res, next).
- * ALL errors thrown anywhere in the app land here.
- *
- * Handles two types:
- *   1. ApiError (our custom, operational errors) → use their statusCode + message
- *   2. Unknown errors (bugs in our code)          → log fully, return 500
- */
 app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
-  // Log every error (full stack in dev, message only in prod)
   if (config.isDev) {
     logger.error(err.stack);
   } else {
     logger.error(`${err.statusCode || 500} - ${err.message} - ${req.originalUrl} - ${req.method}`);
   }
 
-  // If it's our known ApiError, respond with its details
   if (err.isOperational) {
     return res.status(err.statusCode).json({
       success: false,
@@ -205,7 +133,6 @@ app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
     });
   }
 
-  // Unknown error — don't leak internal details to the client
   return res.status(500).json({
     success: false,
     statusCode: 500,
