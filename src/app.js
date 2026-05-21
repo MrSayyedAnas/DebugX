@@ -49,27 +49,25 @@ app.use(helmet());
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
-  process.env.CLIENT_URL, // your Vercel URL goes here after deploy
-].filter(Boolean); // removes undefined if CLIENT_URL isn't set
+  process.env.CLIENT_URL,
+].filter(Boolean);
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow Postman / curl (no origin) and whitelisted origins
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS blocked: ${origin}`));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+const corsMiddleware = cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked: ${origin}`));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+});
 
 // Handle OPTIONS pre-flight for all routes — must be BEFORE route definitions
-app.options("*", cors());
+app.use(corsMiddleware);
+app.options("(.*)", corsMiddleware);
 
 /**
  * Global rate limiter — brute-force protection.
@@ -78,14 +76,19 @@ app.options("*", cors());
  * Auth routes will get a stricter limiter applied directly.
  */
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 100,
-  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
+  standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    success: false,
-    statusCode: 429,
-    message: "Too many requests from this IP. Please try again after 15 minutes.",
+  // ✅ Add this — attach CORS headers even on 429 responses
+  handler: (req, res) => {
+    res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.status(429).json({
+      success: false,
+      statusCode: 429,
+      message: "Too many requests from this IP. Please try again after 15 minutes.",
+    });
   },
 });
 app.use(globalLimiter);
