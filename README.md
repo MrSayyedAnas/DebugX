@@ -76,12 +76,8 @@ Auto-update bug status
 - **AI Service:** https://debugx-ai-service.onrender.com
 - **Health Check:** https://debugx.onrender.com/api/health
 
-### Test Account
-```
-Email:    anas@debugx.com
-Password: secret123
-```
-
+## Test Account
+Contact the author for test credentials.
 ---
 
 ## 📁 Project Structure
