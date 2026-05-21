@@ -46,13 +46,30 @@ app.use(helmet());
  * CORS configuration.
  * In production, replace '*' with your actual frontend origin.
  */
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  process.env.CLIENT_URL, // your Vercel URL goes here after deploy
+].filter(Boolean); // removes undefined if CLIENT_URL isn't set
+
 app.use(
   cors({
-    origin: config.isProd ? process.env.CLIENT_URL : "*",
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    origin: function (origin, callback) {
+      // Allow Postman / curl (no origin) and whitelisted origins
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS blocked: ${origin}`));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// Handle OPTIONS pre-flight for all routes — must be BEFORE route definitions
+app.options("*", cors());
 
 /**
  * Global rate limiter — brute-force protection.
