@@ -67,7 +67,7 @@ const corsMiddleware = cors({
 
 // Handle OPTIONS pre-flight for all routes — must be BEFORE route definitions
 app.use(corsMiddleware);
-app.options("(.*)", corsMiddleware);
+app.options("/{*path}", corsMiddleware);
 
 /**
  * Global rate limiter — brute-force protection.
