@@ -8,3 +8,6 @@ ai-service/models/
 __pycache__/
 *.pkl
 *.pyc
+models/
+__pycache__/
+*.pyc
