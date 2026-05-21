@@ -31,7 +31,7 @@ jobs:
         if: steps.tests.outcome == 'success'
         run: |
           COMMIT_MSG="${{ github.event.head_commit.message }}"
-          BUG_ID=$(echo "$COMMIT_MSG" | grep -oP '(?<=#)[a-f0-9]{24}')
+          BUG_ID=$(echo "$COMMIT_MSG" | grep -oP '(?<=#)[a-f0-9]{24}' || true)
           if [ -n "$BUG_ID" ]; then
             curl -X POST ${{ secrets.DEBUGX_API_URL }}/api/v1/ci/webhook \
               -H "Content-Type: application/json" \
@@ -41,17 +41,17 @@ jobs:
                 "commit": "${{ github.sha }}",
                 "branch": "${{ github.ref_name }}",
                 "triggeredBy": "${{ github.actor }}"
-              }'
+              }' || true
             echo "✅ DebugX notified: Bug $BUG_ID resolved"
           else
-            echo "ℹ️ No bug ID found in commit message"
+            echo "ℹ️ No bug ID found in commit message. Skipping."
           fi
 
       - name: Notify DebugX (Failure)
         if: steps.tests.outcome == 'failure'
         run: |
           COMMIT_MSG="${{ github.event.head_commit.message }}"
-          BUG_ID=$(echo "$COMMIT_MSG" | grep -oP '(?<=#)[a-f0-9]{24}')
+          BUG_ID=$(echo "$COMMIT_MSG" | grep -oP '(?<=#)[a-f0-9]{24}' || true)
           if [ -n "$BUG_ID" ]; then
             curl -X POST ${{ secrets.DEBUGX_API_URL }}/api/v1/ci/webhook \
               -H "Content-Type: application/json" \
@@ -61,6 +61,8 @@ jobs:
                 "commit": "${{ github.sha }}",
                 "branch": "${{ github.ref_name }}",
                 "triggeredBy": "${{ github.actor }}"
-              }'
+              }' || true
             echo "❌ DebugX notified: Bug $BUG_ID build failed"
+          else
+            echo "ℹ️ No bug ID found in commit message. Skipping."
           fi
