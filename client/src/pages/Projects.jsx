@@ -4,11 +4,10 @@ import Layout from "../components/Layout";
 import api from "../api/axios";
 
 const statusColors = {
-    active: "bg-green-900 text-green-400",
-    inactive: "bg-zinc-800 text-zinc-400",
-    completed: "bg-blue-900 text-blue-400",
-    archived: "bg-yellow-900 text-yellow-400",
-};
+  active:    "bg-green-900 text-green-400",
+  completed: "bg-blue-900 text-blue-400",
+  archived:  "bg-yellow-900 text-yellow-400",
+}
 
 export default function Projects() {
     const navigate = useNavigate();
@@ -235,7 +234,6 @@ export default function Projects() {
                                     className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-600 transition-colors"
                                 >
                                     <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
                                     <option value="completed">Completed</option>
                                     <option value="archived">Archived</option>
                                 </select>

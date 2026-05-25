@@ -4,17 +4,17 @@ import Layout from "../components/Layout";
 import api from "../api/axios";
 
 const priorityColors = {
-  low:      "bg-green-900 text-green-400",
-  medium:   "bg-yellow-900 text-yellow-400",
-  high:     "bg-orange-900 text-orange-400",
+  low: "bg-green-900 text-green-400",
+  medium: "bg-yellow-900 text-yellow-400",
+  high: "bg-orange-900 text-orange-400",
   critical: "bg-red-900 text-red-400",
 };
 
 const statusColors = {
-  open:        "bg-blue-900 text-blue-400",
+  open: "bg-blue-900 text-blue-400",
   in_progress: "bg-purple-900 text-purple-400",
-  resolved:    "bg-green-900 text-green-400",
-  closed:      "bg-zinc-800 text-zinc-400",
+  resolved: "bg-green-900 text-green-400",
+  closed: "bg-zinc-800 text-zinc-400",
 };
 
 const statusLabels = {
@@ -22,17 +22,17 @@ const statusLabels = {
 };
 
 export default function BugDetail() {
-  const { projectId, bugId } = useParams();
+  const { bugId } = useParams();
   const navigate = useNavigate();
 
-  const [bug, setBug]               = useState(null);
-  const [comments, setComments]     = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [error, setError]           = useState("");
+  const [bug, setBug] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [newComment, setNewComment] = useState("");
-  const [posting, setPosting]       = useState(false);
+  const [posting, setPosting] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [activeTab, setActiveTab]   = useState("details");
+  const [activeTab, setActiveTab] = useState("details");
 
   const fetchBug = async () => {
     try {
@@ -41,8 +41,8 @@ export default function BugDetail() {
         api.get(`/bugs/${bugId}`),
         api.get(`/bugs/${bugId}/comments`),
       ]);
-      setBug(bugRes.data.data || bugRes.data);
-      const raw = commentsRes.data.data || commentsRes.data || [];
+      setBug(bugRes.data.data.bug);
+      const raw = commentsRes.data.data.comments || [];
       setComments(Array.isArray(raw) ? raw : []);
     } catch {
       setError("Failed to load bug details.");
@@ -83,10 +83,10 @@ export default function BugDetail() {
   if (loading) return (
     <Layout>
       <div className="p-6 max-w-5xl mx-auto space-y-4">
-        {[1,2,3].map(i => (
+        {[1, 2, 3].map(i => (
           <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 animate-pulse">
-            <div className="h-4 bg-zinc-800 rounded w-1/3 mb-3"/>
-            <div className="h-3 bg-zinc-800 rounded w-2/3"/>
+            <div className="h-4 bg-zinc-800 rounded w-1/3 mb-3" />
+            <div className="h-3 bg-zinc-800 rounded w-2/3" />
           </div>
         ))}
       </div>
@@ -109,7 +109,7 @@ export default function BugDetail() {
         <div className="flex items-center gap-2 text-sm text-zinc-500 mb-6">
           <button onClick={() => navigate("/projects")} className="hover:text-white transition-colors">Projects</button>
           <span>/</span>
-          <button onClick={() => navigate(`/projects/${projectId}/bugs`)} className="hover:text-white transition-colors">
+          <button onClick={() => navigate(`/projects/${bug?.project?._id}/bugs`)} className="hover:text-white transition-colors">
             {bug.project?.name || "Bugs"}
           </button>
           <span>/</span>
@@ -121,11 +121,11 @@ export default function BugDetail() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap mb-2">
               <h1 className="text-xl font-bold text-white">{bug.title}</h1>
-              {bug.aiClassification && (
+              {bug.aiClassified && (
                 <span className="flex items-center gap-1 text-xs bg-purple-900 text-purple-300 px-2 py-1 rounded-full font-medium">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.344.346a3.51 3.51 0 01-1 2.395l-.34.34a2 2 0 01-1.42.588h-3.35a2 2 0 01-1.42-.588l-.34-.34a3.51 3.51 0 01-1-2.395l-.344-.346z"/>
+                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.344.346a3.51 3.51 0 01-1 2.395l-.34.34a2 2 0 01-1.42.588h-3.35a2 2 0 01-1.42-.588l-.34-.34a3.51 3.51 0 01-1-2.395l-.344-.346z" />
                   </svg>
                   AI Classified
                 </span>
@@ -161,15 +161,14 @@ export default function BugDetail() {
 
         {/* Tabs */}
         <div className="flex gap-1 mb-6 border-b border-zinc-800">
-          {["details","comments","ai"].map((tab) => (
+          {["details", "comments", "ai"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${
-                activeTab === tab
+              className={`px-4 py-2 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${activeTab === tab
                   ? "border-red-500 text-white"
                   : "border-transparent text-zinc-500 hover:text-zinc-300"
-              }`}
+                }`}
             >
               {tab === "ai" ? "AI Analysis" : tab}
               {tab === "comments" && comments.length > 0 && (
@@ -222,10 +221,10 @@ export default function BugDetail() {
             <div className="space-y-4">
               <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 space-y-4">
                 <MetaRow label="Reported by" value={bug.reportedBy?.name || bug.reportedBy || "—"} />
-                <MetaRow label="Assigned to"  value={bug.assignedTo?.name  || bug.assignedTo  || "Unassigned"} />
-                <MetaRow label="Priority"     value={bug.priority || "medium"} />
-                <MetaRow label="Created"      value={bug.createdAt ? new Date(bug.createdAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"} />
-                <MetaRow label="Updated"      value={bug.updatedAt ? new Date(bug.updatedAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"} />
+                <MetaRow label="Assigned to" value={bug.assignedTo?.name || bug.assignedTo || "Unassigned"} />
+                <MetaRow label="Priority" value={bug.priority || "medium"} />
+                <MetaRow label="Created" value={bug.createdAt ? new Date(bug.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"} />
+                <MetaRow label="Updated" value={bug.updatedAt ? new Date(bug.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"} />
               </div>
             </div>
           </div>
@@ -247,7 +246,7 @@ export default function BugDetail() {
                       <span className="text-white text-sm font-medium">{c.author?.name || c.author || "User"}</span>
                     </div>
                     <span className="text-zinc-600 text-xs">
-                      {c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-US",{month:"short",day:"numeric"}) : ""}
+                      {c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}
                     </span>
                   </div>
                   <p className="text-zinc-300 text-sm leading-relaxed pl-9">{c.content || c.text}</p>
@@ -280,50 +279,60 @@ export default function BugDetail() {
         {/* AI ANALYSIS TAB */}
         {activeTab === "ai" && (
           <div className="max-w-3xl space-y-4">
-            {!bug.aiClassification ? (
+            {!bug.aiClassified ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-14 h-14 bg-purple-950 rounded-2xl flex items-center justify-center mb-4">
-                  <svg className="w-7 h-7 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.344.346a3.51 3.51 0 01-1 2.395l-.34.34a2 2 0 01-1.42.588h-3.35a2 2 0 01-1.42-.588l-.34-.34a3.51 3.51 0 01-1-2.395l-.344-.346z"/>
-                  </svg>
+                <div className="w-14 h-14 bg-zinc-900 rounded-2xl flex items-center justify-center mb-4">
+                  <span className="text-3xl">🤖</span>
                 </div>
-                <h3 className="text-white font-semibold mb-1">No AI Analysis Yet</h3>
-                <p className="text-zinc-500 text-sm">This bug has not been classified by the AI service.</p>
+                <h3 className="text-white font-semibold mb-1">Not Yet Classified</h3>
+                <p className="text-zinc-500 text-sm">AI service will classify this bug shortly after creation.</p>
               </div>
             ) : (
               <>
-                <div className="bg-zinc-950 border border-purple-900 rounded-xl p-5">
-                  <h3 className="text-purple-400 text-xs font-medium uppercase tracking-wider mb-4">AI Classification</h3>
-                  <div className="space-y-3">
-                    {bug.aiClassification.category && (
-                      <AIRow label="Category"   value={bug.aiClassification.category} />
-                    )}
-                    {bug.aiClassification.severity && (
-                      <AIRow label="Severity"   value={bug.aiClassification.severity} />
-                    )}
-                    {bug.aiClassification.confidence && (
-                      <AIRow label="Confidence" value={`${Math.round(bug.aiClassification.confidence * 100)}%`} />
-                    )}
-                    {bug.aiClassification.suggestedPriority && (
-                      <AIRow label="Suggested Priority" value={bug.aiClassification.suggestedPriority} />
-                    )}
+                {/* AI Classification Card */}
+                <div className="bg-zinc-950 border border-red-900/50 rounded-xl p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-lg">🤖</span>
+                    <h3 className="text-red-400 text-xs font-medium uppercase tracking-wider">
+                      AI Classification
+                    </h3>
+                  </div>
+                  <div className="space-y-4">
+                    <AIRow label="Category" value={bug.category?.replace('_', ' ')} />
+                    <AIRow label="Priority" value={bug.priority} />
+                    <AIRow label="Severity" value={bug.severity} />
+                    <AIRow
+                      label="Confidence"
+                      value={`${Math.round((bug.aiConfidence || 0) * 100)}%`}
+                    />
+                  </div>
+
+                  {/* Confidence Bar */}
+                  <div className="mt-5 pt-4 border-t border-zinc-800">
+                    <div className="flex justify-between text-xs mb-2">
+                      <span className="text-zinc-500">Confidence Score</span>
+                      <span className="text-white font-medium">
+                        {Math.round((bug.aiConfidence || 0) * 100)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-zinc-800 rounded-full h-2">
+                      <div
+                        className="bg-red-500 h-2 rounded-full transition-all"
+                        style={{ width: `${Math.round((bug.aiConfidence || 0) * 100)}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {bug.aiClassification.summary && (
-                  <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5">
-                    <h3 className="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-3">AI Summary</h3>
-                    <p className="text-zinc-300 text-sm leading-relaxed">{bug.aiClassification.summary}</p>
-                  </div>
-                )}
-
-                {bug.aiClassification.suggestedFix && (
-                  <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5">
-                    <h3 className="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-3">Suggested Fix</h3>
-                    <p className="text-zinc-300 text-sm leading-relaxed">{bug.aiClassification.suggestedFix}</p>
-                  </div>
-                )}
+                {/* AI Info Note */}
+                <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+                  <p className="text-zinc-500 text-xs leading-relaxed">
+                    This bug was automatically classified by DebugX AI using
+                    TF-IDF vectorization and Naive Bayes classification.
+                    The confidence score indicates how certain the model is about
+                    this classification.
+                  </p>
+                </div>
               </>
             )}
           </div>

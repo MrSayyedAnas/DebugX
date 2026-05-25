@@ -9,30 +9,33 @@ import {
 const COLORS = ["#3b82f6", "#a855f7", "#22c55e", "#6b7280"];
 
 export default function Analytics() {
-  const [projects, setProjects]       = useState([]);
+  const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState("");
-  const [trends, setTrends]           = useState([]);
+  const [trends, setTrends] = useState([]);
   const [projectStats, setProjectStats] = useState(null);
-  const [teamData, setTeamData]       = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState("");
+  const [teamData, setTeamData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   // Fetch all projects first
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await api.get("/projects");
-        const raw = res.data.data?.projects || res.data.data || res.data || [];
-        const list = Array.isArray(raw) ? raw : [];
-        setProjects(list);
-        if (list.length > 0) setSelectedProject(list[0]._id);
+        const res = await api.get("/projects")
+        const list = res.data.data.projects || []
+        setProjects(list)
+        if (list.length > 0) {
+          setSelectedProject(list[0]._id)
+        } else {
+          setLoading(false) // ← ADD THIS
+        }
       } catch {
-        setError("Failed to load projects.");
-        setLoading(false);
+        setError("Failed to load projects.")
+        setLoading(false)
       }
-    };
-    fetchProjects();
-  }, []);
+    }
+    fetchProjects()
+  }, [])
 
   // Fetch analytics when project changes
   useEffect(() => {
@@ -47,13 +50,23 @@ export default function Analytics() {
           api.get(`/analytics/team/${selectedProject}`),
         ]);
 
-        const trendsRaw = trendsRes.data.data || trendsRes.data || [];
-        setTrends(Array.isArray(trendsRaw) ? trendsRaw : []);
+        const trendsData = trendsRes.data.data.trends
+        const combined = trendsData?.created?.map(item => ({
+          date: item.date,
+          count: item.count
+        })) || []
+        setTrends(combined)
 
-        setProjectStats(statsRes.data.data || statsRes.data || null);
+        setProjectStats(statsRes.data.data.stats || null)
 
-        const teamRaw = teamRes.data.data || teamRes.data || [];
-        setTeamData(Array.isArray(teamRaw) ? teamRaw : []);
+        const teamRaw = teamRes.data.data.performance.teamStats || []
+        const formatted = teamRaw.map(member => ({
+          name: member.developer?.name || 'Unknown',
+          assigned: member.metrics?.totalAssigned || 0,
+          resolved: member.metrics?.totalResolved || 0,
+          avgResolutionTime: member.metrics?.avgResolutionTime || null,
+        }))
+        setTeamData(formatted)
       } catch {
         setError("Failed to load analytics.");
       } finally {
@@ -64,11 +77,11 @@ export default function Analytics() {
   }, [selectedProject]);
 
   const statusDist = projectStats ? [
-    { name: "Open",        value: projectStats.openBugs        || projectStats.open        || 0 },
-    { name: "In Progress", value: projectStats.inProgressBugs  || projectStats.in_progress || 0 },
-    { name: "Resolved",    value: projectStats.resolvedBugs    || projectStats.resolved    || 0 },
-    { name: "Closed",      value: projectStats.closedBugs      || projectStats.closed      || 0 },
-  ].filter(d => d.value > 0) : [];
+    { name: "Open", value: projectStats?.bugs?.byStatus?.open || 0 },
+    { name: "In Progress", value: projectStats?.bugs?.byStatus?.in_progress || 0 },
+    { name: "Resolved", value: projectStats?.bugs?.byStatus?.resolved || 0 },
+    { name: "Closed", value: projectStats?.bugs?.byStatus?.closed || 0 },
+  ].filter(d => d.value > 0) : []
 
   const totalBugs = statusDist.reduce((a, b) => a + b.value, 0);
 
@@ -99,18 +112,29 @@ export default function Analytics() {
 
         {loading ? (
           <div className="grid grid-cols-2 gap-6">
-            {[1,2,3,4].map(i => (
-              <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 animate-pulse h-48"/>
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 animate-pulse h-48" />
             ))}
+          </div>
+        ) : projects.length === 0 ? (
+          /* ← ADD THIS EMPTY STATE */
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center mb-4">
+              <span className="text-3xl">📊</span>
+            </div>
+            <h3 className="text-white font-semibold text-lg mb-1">No projects yet</h3>
+            <p className="text-zinc-500 text-sm mb-6">
+              You need to be added to a project to see analytics.
+            </p>
           </div>
         ) : (
           <>
             {/* Stat cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <StatCard label="Total Bugs"  value={totalBugs} color="text-white" />
-              <StatCard label="Open"        value={projectStats?.openBugs       || projectStats?.open        || 0} color="text-blue-400" />
-              <StatCard label="In Progress" value={projectStats?.inProgressBugs || projectStats?.in_progress || 0} color="text-purple-400" />
-              <StatCard label="Resolved"    value={projectStats?.resolvedBugs   || projectStats?.resolved    || 0} color="text-green-400" />
+              <StatCard label="Total Bugs" value={projectStats?.bugs?.total || 0} color="text-white" />
+              <StatCard label="Open" value={projectStats?.bugs?.byStatus?.open || 0} color="text-red-400" />
+              <StatCard label="In Progress" value={projectStats?.bugs?.byStatus?.in_progress || 0} color="text-yellow-400" />
+              <StatCard label="Resolved" value={projectStats?.bugs?.byStatus?.resolved || 0} color="text-green-400" />
             </div>
 
             {/* Charts row */}
@@ -134,7 +158,7 @@ export default function Analytics() {
                       />
                       <Line type="monotone" dataKey="opened" stroke="#ef4444" strokeWidth={2} dot={false} name="Opened" />
                       <Line type="monotone" dataKey="closed" stroke="#22c55e" strokeWidth={2} dot={false} name="Closed" />
-                      <Line type="monotone" dataKey="total"  stroke="#3b82f6" strokeWidth={2} dot={false} name="Total" />
+                      <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={2} dot={false} name="Total" />
                     </LineChart>
                   </ResponsiveContainer>
                 )}
@@ -190,8 +214,8 @@ export default function Analytics() {
                       labelStyle={{ color: "#fff" }}
                       itemStyle={{ color: "#a1a1aa" }}
                     />
-                    <Bar dataKey="resolved" fill="#22c55e" radius={[4,4,0,0]} name="Resolved" />
-                    <Bar dataKey="assigned" fill="#3b82f6" radius={[4,4,0,0]} name="Assigned" />
+                    <Bar dataKey="resolved" fill="#22c55e" radius={[4, 4, 0, 0]} name="Resolved" />
+                    <Bar dataKey="assigned" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Assigned" />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -206,7 +230,7 @@ export default function Analytics() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-zinc-800">
-                      {["Developer","Assigned","Resolved","Resolution Rate","Avg Time"].map(h => (
+                      {["Developer", "Assigned", "Resolved", "Resolution Rate", "Avg Time"].map(h => (
                         <th key={h} className="text-left text-xs text-zinc-500 font-medium px-5 py-3">{h}</th>
                       ))}
                     </tr>

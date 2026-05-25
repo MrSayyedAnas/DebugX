@@ -78,9 +78,11 @@ export default function BugList() {
             setSubmitting(true);
             setFormError("");
             await api.post("/bugs", {
-                ...form,
-                project: projectId,
-                description: form.description.trim() || "No description provided.", // fallback
+                projectId: projectId,      // ✅ correct field name
+                title: form.title.trim(),
+                description: form.description.trim(),
+                priority: form.priority,
+                stepsToReproduce: form.stepsToReproduce,
             });
             setForm({ title: "", description: "", priority: "medium", stepsToReproduce: "", expectedBehavior: "", actualBehavior: "" });
             setShowModal(false);
@@ -224,7 +226,7 @@ export default function BugList() {
                         {filtered.map((bug) => (
                             <div
                                 key={bug._id}
-                                onClick={() => navigate(`/projects/${projectId}/bugs/${bug._id}`)}
+                                onClick={() => navigate(`/bugs/${bug._id}`)}
                                 className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-colors cursor-pointer group"
                             >
                                 <div className="flex items-start justify-between gap-3">
