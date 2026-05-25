@@ -9,7 +9,8 @@ import Projects from './pages/Projects'
 import BugList from './pages/BugList'
 import BugDetail from './pages/BugDetail'
 import Analytics from './pages/Analytics'
-
+// DebugX Frontend v1.0.0
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 // Protected Route — redirects to login if not authenticated
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth()
