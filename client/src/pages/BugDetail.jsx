@@ -18,7 +18,10 @@ const statusColors = {
 };
 
 const statusLabels = {
-  open: "Open", in_progress: "In Progress", resolved: "Resolved", closed: "Closed",
+  open: "Open",
+  in_progress: "In Progress",
+  resolved: "Resolved",
+  closed: "Closed",
 };
 
 export default function BugDetail() {
@@ -33,6 +36,10 @@ export default function BugDetail() {
   const [posting, setPosting] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editForm, setEditForm] = useState({});
+  const [saving, setSaving] = useState(false);
 
   const fetchBug = async () => {
     try {
@@ -80,10 +87,45 @@ export default function BugDetail() {
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      await api.delete(`/bugs/${bugId}`);
+      navigate(`/projects/${bug?.project?._id}/bugs`);
+    } catch {
+      setError("Failed to delete bug.");
+    }
+  };
+
+  const handleEdit = async (e) => {
+    e.preventDefault();
+    try {
+      setSaving(true);
+      await api.patch(`/bugs/${bugId}`, editForm);
+      setShowEditModal(false);
+      fetchBug();
+    } catch {
+      setError("Failed to update bug.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openEditModal = () => {
+    setEditForm({
+      title: bug.title,
+      description: bug.description,
+      priority: bug.priority,
+      severity: bug.severity,
+      stepsToReproduce: bug.stepsToReproduce || "",
+      environment: bug.environment || "",
+    });
+    setShowEditModal(true);
+  };
+
   if (loading) return (
     <Layout>
       <div className="p-6 max-w-5xl mx-auto space-y-4">
-        {[1, 2, 3].map(i => (
+        {[1, 2, 3].map((i) => (
           <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 animate-pulse">
             <div className="h-4 bg-zinc-800 rounded w-1/3 mb-3" />
             <div className="h-3 bg-zinc-800 rounded w-2/3" />
@@ -96,7 +138,9 @@ export default function BugDetail() {
   if (error || !bug) return (
     <Layout>
       <div className="p-6 max-w-5xl mx-auto">
-        <div className="p-4 bg-red-950 border border-red-800 rounded-xl text-red-400 text-sm">{error || "Bug not found."}</div>
+        <div className="p-4 bg-red-950 border border-red-800 rounded-xl text-red-400 text-sm">
+          {error || "Bug not found."}
+        </div>
       </div>
     </Layout>
   );
@@ -107,9 +151,14 @@ export default function BugDetail() {
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-zinc-500 mb-6">
-          <button onClick={() => navigate("/projects")} className="hover:text-white transition-colors">Projects</button>
+          <button onClick={() => navigate("/projects")} className="hover:text-white transition-colors">
+            Projects
+          </button>
           <span>/</span>
-          <button onClick={() => navigate(`/projects/${bug?.project?._id}/bugs`)} className="hover:text-white transition-colors">
+          <button
+            onClick={() => navigate(`/projects/${bug?.project?._id}/bugs`)}
+            className="hover:text-white transition-colors"
+          >
             {bug.project?.name || "Bugs"}
           </button>
           <span>/</span>
@@ -142,8 +191,25 @@ export default function BugDetail() {
             </div>
           </div>
 
-          {/* Status updater */}
+          {/* Action Buttons */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Edit Button */}
+            <button
+              onClick={openEditModal}
+              className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm rounded-lg transition"
+            >
+              Edit
+            </button>
+
+            {/* Delete Button */}
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="px-3 py-1.5 bg-red-950 hover:bg-red-900 text-red-400 text-sm rounded-lg transition"
+            >
+              Delete
+            </button>
+
+            {/* Status updater */}
             <span className="text-zinc-500 text-sm">Status:</span>
             <select
               value={bug.status}
@@ -158,6 +224,7 @@ export default function BugDetail() {
             </select>
           </div>
         </div>
+        {/* ↑ Title row closes here — was missing in original */}
 
         {/* Tabs */}
         <div className="flex gap-1 mb-6 border-b border-zinc-800">
@@ -165,10 +232,11 @@ export default function BugDetail() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${activeTab === tab
+              className={`px-4 py-2 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${
+                activeTab === tab
                   ? "border-red-500 text-white"
                   : "border-transparent text-zinc-500 hover:text-zinc-300"
-                }`}
+              }`}
             >
               {tab === "ai" ? "AI Analysis" : tab}
               {tab === "comments" && comments.length > 0 && (
@@ -223,8 +291,18 @@ export default function BugDetail() {
                 <MetaRow label="Reported by" value={bug.reportedBy?.name || bug.reportedBy || "—"} />
                 <MetaRow label="Assigned to" value={bug.assignedTo?.name || bug.assignedTo || "Unassigned"} />
                 <MetaRow label="Priority" value={bug.priority || "medium"} />
-                <MetaRow label="Created" value={bug.createdAt ? new Date(bug.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"} />
-                <MetaRow label="Updated" value={bug.updatedAt ? new Date(bug.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"} />
+                <MetaRow
+                  label="Created"
+                  value={bug.createdAt
+                    ? new Date(bug.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                    : "—"}
+                />
+                <MetaRow
+                  label="Updated"
+                  value={bug.updatedAt
+                    ? new Date(bug.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                    : "—"}
+                />
               </div>
             </div>
           </div>
@@ -234,7 +312,9 @@ export default function BugDetail() {
         {activeTab === "comments" && (
           <div className="space-y-4 max-w-3xl">
             {comments.length === 0 ? (
-              <div className="text-center py-12 text-zinc-500 text-sm">No comments yet. Be the first to comment.</div>
+              <div className="text-center py-12 text-zinc-500 text-sm">
+                No comments yet. Be the first to comment.
+              </div>
             ) : (
               comments.map((c, i) => (
                 <div key={c._id || i} className="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
@@ -246,7 +326,9 @@ export default function BugDetail() {
                       <span className="text-white text-sm font-medium">{c.author?.name || c.author || "User"}</span>
                     </div>
                     <span className="text-zinc-600 text-xs">
-                      {c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}
+                      {c.createdAt
+                        ? new Date(c.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                        : ""}
                     </span>
                   </div>
                   <p className="text-zinc-300 text-sm leading-relaxed pl-9">{c.content || c.text}</p>
@@ -289,25 +371,17 @@ export default function BugDetail() {
               </div>
             ) : (
               <>
-                {/* AI Classification Card */}
                 <div className="bg-zinc-950 border border-red-900/50 rounded-xl p-5">
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-lg">🤖</span>
-                    <h3 className="text-red-400 text-xs font-medium uppercase tracking-wider">
-                      AI Classification
-                    </h3>
+                    <h3 className="text-red-400 text-xs font-medium uppercase tracking-wider">AI Classification</h3>
                   </div>
                   <div className="space-y-4">
-                    <AIRow label="Category" value={bug.category?.replace('_', ' ')} />
+                    <AIRow label="Category" value={bug.category?.replace("_", " ")} />
                     <AIRow label="Priority" value={bug.priority} />
                     <AIRow label="Severity" value={bug.severity} />
-                    <AIRow
-                      label="Confidence"
-                      value={`${Math.round((bug.aiConfidence || 0) * 100)}%`}
-                    />
+                    <AIRow label="Confidence" value={`${Math.round((bug.aiConfidence || 0) * 100)}%`} />
                   </div>
-
-                  {/* Confidence Bar */}
                   <div className="mt-5 pt-4 border-t border-zinc-800">
                     <div className="flex justify-between text-xs mb-2">
                       <span className="text-zinc-500">Confidence Score</span>
@@ -324,17 +398,161 @@ export default function BugDetail() {
                   </div>
                 </div>
 
-                {/* AI Info Note */}
                 <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
                   <p className="text-zinc-500 text-xs leading-relaxed">
-                    This bug was automatically classified by DebugX AI using
-                    TF-IDF vectorization and Naive Bayes classification.
-                    The confidence score indicates how certain the model is about
-                    this classification.
+                    This bug was automatically classified by DebugX AI using TF-IDF vectorization and
+                    Naive Bayes classification. The confidence score indicates how certain the model is
+                    about this classification.
                   </p>
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {/* Edit Bug Modal */}
+        {showEditModal && (
+          <div
+            className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowEditModal(false)}
+          >
+            <div
+              className="bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-white font-semibold text-lg">Edit Bug</h2>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="text-zinc-500 hover:text-white transition"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleEdit} className="space-y-4">
+                <div>
+                  <label className="block text-zinc-400 text-sm mb-1.5">Title</label>
+                  <input
+                    type="text"
+                    value={editForm.title || ""}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-600 transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 text-sm mb-1.5">Description</label>
+                  <textarea
+                    value={editForm.description || ""}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    rows={4}
+                    className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-600 transition resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-zinc-400 text-sm mb-1.5">Priority</label>
+                    <select
+                      value={editForm.priority || "medium"}
+                      onChange={(e) => setEditForm({ ...editForm, priority: e.target.value })}
+                      className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-600 transition"
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="critical">Critical</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 text-sm mb-1.5">Severity</label>
+                    <select
+                      value={editForm.severity || "moderate"}
+                      onChange={(e) => setEditForm({ ...editForm, severity: e.target.value })}
+                      className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-600 transition"
+                    >
+                      <option value="minor">Minor</option>
+                      <option value="moderate">Moderate</option>
+                      <option value="major">Major</option>
+                      <option value="critical">Critical</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 text-sm mb-1.5">Steps to Reproduce</label>
+                  <textarea
+                    value={editForm.stepsToReproduce || ""}
+                    onChange={(e) => setEditForm({ ...editForm, stepsToReproduce: e.target.value })}
+                    rows={3}
+                    className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-600 transition resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 text-sm mb-1.5">Environment</label>
+                  <input
+                    type="text"
+                    value={editForm.environment || ""}
+                    onChange={(e) => setEditForm({ ...editForm, environment: e.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-600 transition"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    className="flex-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 py-2 rounded-lg text-sm transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white py-2 rounded-lg text-sm transition"
+                  >
+                    {saving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div
+            className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowDeleteConfirm(false)}
+          >
+            <div
+              className="bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-sm p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-12 h-12 bg-red-950 rounded-xl flex items-center justify-center mb-4">
+                <span className="text-2xl">🗑️</span>
+              </div>
+              <h3 className="text-white font-semibold text-base mb-1">Delete Bug?</h3>
+              <p className="text-zinc-400 text-sm mb-5">
+                This will permanently delete this bug and all its comments. This cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 py-2 rounded-lg text-sm transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded-lg text-sm transition"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
