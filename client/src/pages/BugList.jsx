@@ -39,7 +39,7 @@ export default function BugList() {
     const [filterPriority, setFilterPriority] = useState("all");
 
     const [form, setForm] = useState({
-        title: "", description: "", priority: "medium", stepsToReproduce: "", expectedBehavior: "", actualBehavior: "",
+        title: "", description: "", priority: "medium", stepsToReproduce: "",
     });
 
     const fetchData = async () => {
@@ -362,29 +362,6 @@ export default function BugList() {
                                     rows={3}
                                     className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm placeholder-zinc-600 focus:outline-none focus:border-red-600 transition-colors resize-none"
                                 />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-zinc-400 text-sm mb-1.5">Expected Behavior</label>
-                                    <textarea
-                                        value={form.expectedBehavior}
-                                        onChange={(e) => setForm({ ...form, expectedBehavior: e.target.value })}
-                                        placeholder="What should happen?"
-                                        rows={2}
-                                        className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm placeholder-zinc-600 focus:outline-none focus:border-red-600 transition-colors resize-none"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-zinc-400 text-sm mb-1.5">Actual Behavior</label>
-                                    <textarea
-                                        value={form.actualBehavior}
-                                        onChange={(e) => setForm({ ...form, actualBehavior: e.target.value })}
-                                        placeholder="What actually happens?"
-                                        rows={2}
-                                        className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm placeholder-zinc-600 focus:outline-none focus:border-red-600 transition-colors resize-none"
-                                    />
-                                </div>
                             </div>
 
                             <div className="flex gap-3 pt-2">
