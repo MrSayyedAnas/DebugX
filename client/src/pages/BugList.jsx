@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 
 const priorityColors = {
     low: "bg-green-900 text-green-400",
@@ -27,7 +28,9 @@ const statusLabels = {
 export default function BugList() {
     const { projectId } = useParams();
     const navigate = useNavigate();
-
+    const { user } = useAuth();
+    const isAdmin = user?.role === "admin";
+    const isTester = user?.role === "tester";
     const [bugs, setBugs] = useState([]);
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -122,15 +125,17 @@ export default function BugList() {
                             {filterStatus !== "all" || filterPriority !== "all" ? " (filtered)" : " total"}
                         </p>
                     </div>
-                    <button
-                        onClick={() => setShowModal(true)}
-                        className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                        Report Bug
-                    </button>
+                    {!isTester && (
+                        <button
+                            onClick={() => setShowModal(true)}
+                            className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            Report Bug
+                        </button>
+                    )}
                 </div>
 
                 {/* Filters */}
