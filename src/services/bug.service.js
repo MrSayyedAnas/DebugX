@@ -16,15 +16,15 @@ const { classifyBug } = require("../utils/aiClassifier");
 // ── Valid Status Transitions ──────────────────────────────────────────────────
 const STATUS_TRANSITIONS = {
   open: ["in_progress", "closed"],
-  in_progress: ["resolved", "open"],
-  resolved: ["closed", "reopened"],
-  closed: ["reopened"],
+  in_progress: ["resolved", "open", "closed"],
+  resolved: ["closed", "open"],
+  closed: ["open", "in_progress"],   // ✅ allow reopening via existing statuses
   reopened: ["in_progress", "closed"],
 };
 
 const createBug = async (data, userId, userRole) => {
   const { projectId, title, description, priority, severity,
-          category, stepsToReproduce, environment, tags } = data;
+    category, stepsToReproduce, environment, tags } = data;
 
   const project = await Project.findById(projectId);
   if (!project) throw ApiError.notFound("Project not found");
