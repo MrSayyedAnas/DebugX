@@ -86,7 +86,14 @@ const getProjectById = async (projectId, userId, userRole) => {
   }
 
   // Check access — admins can see all, others must be members
-  if (userRole !== "admin" && !project.isMember(userId)) {
+  // Check access — admins can see all, others must be members
+  const isMember = project.members.some(
+    (m) =>
+      m.user?._id?.toString() === userId.toString() ||
+      m.user?.toString() === userId.toString()
+  );
+
+  if (userRole !== "admin" && !isMember) {
     throw ApiError.forbidden("You do not have access to this project");
   }
 
