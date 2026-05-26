@@ -81,4 +81,11 @@ router.post(
  */
 router.get("/me", protect, authController.getMe);
 
+/**
+ * @route   GET /api/v1/auth/users
+ * @desc    Get all users (admin only, for member assignment)
+ * @access  Private (admin only)
+ */
+router.get("/users", protect, authController.getAllUsers);
+
 module.exports = router;

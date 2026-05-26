@@ -156,10 +156,16 @@ const getMe = async (userId) => {
   return user;
 };
 
+const getAllUsers = async () => {
+  const users = await User.find({}).select("_id name email role");
+  return users;
+};
+
 // ── Exports ───────────────────────────────────────────────────────────────────
 
 module.exports = {
   register,
   login,
   getMe,
+  getAllUsers,
 };

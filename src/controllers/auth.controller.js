@@ -100,10 +100,19 @@ const getMe = asyncHandler(async (req, res) => {
   sendSuccess(res, 200, "Profile fetched successfully", { user });
 });
 
+const getAllUsers = asyncHandler(async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ success: false, message: "Admins only." });
+  }
+  const users = await authService.getAllUsers();
+  sendSuccess(res, 200, "Users fetched", { users });
+});
+
 // ── Exports ───────────────────────────────────────────────────────────────────
 
 module.exports = {
   register,
   login,
   getMe,
+  getAllUsers,
 };

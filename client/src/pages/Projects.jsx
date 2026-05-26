@@ -96,26 +96,32 @@ export default function Projects() {
   };
 
   const handleAddMember = async (e) => {
-    e.preventDefault();
-    if (!memberEmail.trim()) return setMemberError("Email is required.");
-    try {
-      setAddingMember(true);
-      setMemberError("");
-      await api.post(`/projects/${selectedProject._id}/members`, {
-        email: memberEmail.trim(),
-        role: memberRole,
-      });
-      setMemberEmail("");
-      setMemberError("");
-      // Show success briefly
-      setMemberError("✅ Member added successfully!");
-      setTimeout(() => setMemberError(""), 2000);
-    } catch (err) {
-      setMemberError(err.response?.data?.message || "Failed to add member.");
-    } finally {
-      setAddingMember(false);
-    }
-  };
+  e.preventDefault();
+  if (!memberEmail.trim()) return setMemberError("Email is required.");
+  try {
+    setAddingMember(true);
+    setMemberError("");
+
+    // Look up user by email to get their _id
+    const userRes = await api.get("/auth/users");
+    const users = userRes.data.data?.users || userRes.data.data || [];
+    const found = users.find((u) => u.email === memberEmail.trim());
+    if (!found) return setMemberError("No user found with that email.");
+
+    await api.post(`/projects/${selectedProject._id}/members`, {
+      userId: found._id,  // ← controller needs this, not email
+      role: memberRole,
+    });
+
+    setMemberEmail("");
+    setMemberError("✅ Member added successfully!");
+    setTimeout(() => setMemberError(""), 2000);
+  } catch (err) {
+    setMemberError(err.response?.data?.message || "Failed to add member.");
+  } finally {
+    setAddingMember(false);
+  }
+};
 
   return (
     <Layout>

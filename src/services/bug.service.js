@@ -161,13 +161,18 @@ const updateBugStatus = async (bugId, newStatus, userId, userRole) => {
     throw ApiError.forbidden("You do not have access to this bug");
   }
 
-  const allowedTransitions = STATUS_TRANSITIONS[bug.status] || [];
-  if (!allowedTransitions.includes(newStatus)) {
-    throw ApiError.badRequest(
-      `Invalid status transition: "${bug.status}" → "${newStatus}". ` +
-      `Allowed transitions: ${allowedTransitions.join(", ")}`
-    );
+  // Admins can make any transition
+  if (userRole !== "admin") {
+    const allowedTransitions = STATUS_TRANSITIONS[bug.status] || [];
+    if (!allowedTransitions.includes(newStatus)) {
+      throw ApiError.badRequest(
+        `Invalid status transition: "${bug.status}" → "${newStatus}". ` +
+        `Allowed: ${allowedTransitions.join(", ")}`
+      );
+    }
   }
+
+  // rest stays the same...
 
   const previousStatus = bug.status;
   bug.status = newStatus;
