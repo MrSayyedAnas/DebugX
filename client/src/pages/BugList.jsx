@@ -226,7 +226,7 @@ export default function BugList() {
                         {filtered.map((bug) => (
                             <div
                                 key={bug._id}
-                                onClick={() => navigate(`/bugs/${bug._id}`)}
+                                onClick={() => navigate(`/projects/${projectId}/bugs/${bug._id}`)}
                                 className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-colors cursor-pointer group"
                             >
                                 <div className="flex items-start justify-between gap-3">
