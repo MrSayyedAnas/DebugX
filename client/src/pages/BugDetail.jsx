@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 
 const priorityColors = {
   low: "bg-green-900 text-green-400",
@@ -27,6 +28,10 @@ const statusLabels = {
 export default function BugDetail() {
   const { bugId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const isDeveloper = user?.role === "developer";
+  const isTester = user?.role === "tester";
 
   const [bug, setBug] = useState(null);
   const [comments, setComments] = useState([]);
@@ -40,6 +45,9 @@ export default function BugDetail() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [saving, setSaving] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assignEmail, setAssignEmail] = useState("");
+  const [projectMembers, setProjectMembers] = useState([]);
 
   const fetchBug = async () => {
     try {
@@ -108,6 +116,27 @@ export default function BugDetail() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleAssign = async (assigneeId) => {
+    try {
+      await api.patch(`/bugs/${bugId}/assign`, { assigneeId });
+      setShowAssignModal(false);
+      fetchBug();
+    } catch {
+      setError("Failed to assign bug.");
+    }
+  };
+
+  const openAssignModal = async () => {
+    try {
+      const res = await api.get(`/projects/${bug?.project?._id}`);
+      const proj = res.data.data?.project || res.data.data || res.data;
+      setProjectMembers(proj.members || []);
+    } catch {
+      setProjectMembers([]);
+    }
+    setShowAssignModal(true);
   };
 
   const openEditModal = () => {
@@ -193,35 +222,53 @@ export default function BugDetail() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Edit Button */}
-            <button
-              onClick={openEditModal}
-              className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm rounded-lg transition"
-            >
-              Edit
-            </button>
+            {/* Assign — admin only */}
+            {isAdmin && (
+              <button
+                onClick={openAssignModal}
+                className="px-3 py-1.5 bg-blue-950 hover:bg-blue-900 text-blue-400 text-sm rounded-lg transition"
+              >
+                Assign
+              </button>
+            )}
 
-            {/* Delete Button */}
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="px-3 py-1.5 bg-red-950 hover:bg-red-900 text-red-400 text-sm rounded-lg transition"
-            >
-              Delete
-            </button>
+            {/* Edit — admin and developer only */}
+            {(isAdmin || isDeveloper) && (
+              <button
+                onClick={openEditModal}
+                className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm rounded-lg transition"
+              >
+                Edit
+              </button>
+            )}
 
-            {/* Status updater */}
-            <span className="text-zinc-500 text-sm">Status:</span>
-            <select
-              value={bug.status}
-              onChange={(e) => handleStatusChange(e.target.value)}
-              disabled={updatingStatus}
-              className="bg-zinc-900 border border-zinc-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-red-600 transition-colors disabled:opacity-50"
-            >
-              <option value="open">Open</option>
-              <option value="in_progress">In Progress</option>
-              <option value="resolved">Resolved</option>
-              <option value="closed">Closed</option>
-            </select>
+            {/* Delete — admin only */}
+            {isAdmin && (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="px-3 py-1.5 bg-red-950 hover:bg-red-900 text-red-400 text-sm rounded-lg transition"
+              >
+                Delete
+              </button>
+            )}
+
+            {/* Status — admin and developer only */}
+            {(isAdmin || isDeveloper) && (
+              <>
+                <span className="text-zinc-500 text-sm">Status:</span>
+                <select
+                  value={bug.status}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  disabled={updatingStatus}
+                  className="bg-zinc-900 border border-zinc-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-red-600 transition-colors disabled:opacity-50"
+                >
+                  <option value="open">Open</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="resolved">Resolved</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </>
+            )}
           </div>
         </div>
         {/* ↑ Title row closes here — was missing in original */}
@@ -407,6 +454,62 @@ export default function BugDetail() {
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {/* Assign Bug Modal */}
+        {showAssignModal && (
+          <div
+            className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowAssignModal(false)}
+          >
+            <div
+              className="bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-sm p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-white font-semibold text-lg">Assign Bug</h2>
+                <button onClick={() => setShowAssignModal(false)} className="text-zinc-500 hover:text-white transition">✕</button>
+              </div>
+
+              {projectMembers.length === 0 ? (
+                <div className="text-center py-6">
+                  <p className="text-zinc-500 text-sm mb-1">No members found.</p>
+                  <p className="text-zinc-600 text-xs">Add members to the project first.</p>
+                </div>
+              ) : (
+                <div className="space-y-2 mb-5">
+                  {projectMembers.map((m) => {
+                    const u = m.user || m;
+                    return (
+                      <button
+                        key={u._id}
+                        onClick={() => handleAssign(u._id)}
+                        className="w-full flex items-center gap-3 p-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-red-600 rounded-lg transition text-left"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-red-900 flex items-center justify-center text-xs font-medium text-red-300 shrink-0">
+                          {(u.name || "U")[0].toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-white text-sm font-medium">{u.name || "Unknown"}</p>
+                          <p className="text-zinc-500 text-xs">{u.email || ""} · {m.role || "member"}</p>
+                        </div>
+                        {bug?.assignedTo?._id === u._id && (
+                          <span className="ml-auto text-xs text-green-400 bg-green-950 px-2 py-0.5 rounded-full">Current</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              <button
+                onClick={() => setShowAssignModal(false)}
+                className="w-full bg-zinc-900 hover:bg-zinc-800 text-zinc-300 py-2 rounded-lg text-sm transition"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
 
