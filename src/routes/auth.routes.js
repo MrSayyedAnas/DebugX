@@ -19,7 +19,7 @@ const router = express.Router();
 const rateLimit = require("express-rate-limit");
 
 const authController = require("../controllers/auth.controller");
-const { protect } = require("../middlewares/auth.middleware");
+const { protect, authorize } = require('../middlewares/auth.middleware')
 const { validate } = require("../middlewares/validate.middleware");
 const {
   registerSchema,
@@ -87,5 +87,16 @@ router.get("/me", protect, authController.getMe);
  * @access  Private (admin only)
  */
 router.get("/users", protect, authController.getAllUsers);
+
+const User = require('../models/user.model')
+
+router.get('/users', protect, authorize('admin'), async (req, res, next) => {
+  try {
+    const users = await User.find({ isActive: true }).select('name email role _id')
+    res.json({ success: true, data: { users } })
+  } catch (err) {
+    next(err)
+  }
+})
 
 module.exports = router;

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import API from '../api/axios'
+import { useAuth } from '../context/AuthContext'
 
 const StatCard = ({ title, value, subtitle, color }) => (
   <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6">
@@ -46,6 +47,7 @@ export default function Dashboard() {
   const [recentBugs, setRecentBugs] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   useEffect(() => {
     fetchData()
@@ -92,12 +94,14 @@ export default function Dashboard() {
             {projects.length > 0 ? `Showing stats for: ${projects[0]?.name}` : 'No projects yet'}
           </p>
         </div>
-        <button
-          onClick={() => navigate('/projects')}
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-        >
-          + New Project
-        </button>
+        {user?.role === 'admin' && (
+          <button
+            onClick={() => navigate('/projects')}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+          >
+            + New Project
+          </button>
+        )}
       </div>
 
       {projects.length === 0 ? (
@@ -106,12 +110,14 @@ export default function Dashboard() {
           <p className="text-4xl mb-4">📁</p>
           <p className="text-white font-medium">No projects yet</p>
           <p className="text-gray-500 text-sm mt-1">Create your first project to get started</p>
-          <button
-            onClick={() => navigate('/projects')}
-            className="mt-4 bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg text-sm transition"
-          >
-            Create Project
-          </button>
+          {user?.role === 'admin' && (
+            <button
+              onClick={() => navigate('/projects')}
+              className="mt-4 bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg text-sm transition"
+            >
+              Create Project
+            </button>
+          )}
         </div>
       ) : (
         <>

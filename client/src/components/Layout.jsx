@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: '📊' },
   { path: '/projects', label: 'Projects', icon: '📁' },
-  { path: '/analytics', label: 'Analytics', icon: '📈' },
+  ...(user?.role !== 'tester' ? [{ path: '/analytics', label: 'Analytics', icon: '📈' }] : []),
 ]
 
 export default function Layout({ children }) {
