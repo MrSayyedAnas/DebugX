@@ -4,7 +4,7 @@
  */
 
 "use strict";
-
+const Bug = require("../models/bug.model");
 const Project = require("../models/project.model");
 const ApiError = require("../utils/ApiError");
 const logger = require("../utils/logger");
@@ -54,7 +54,6 @@ const getProjects = async (userId, userRole) => {
   let query = {};
 
   if (userRole !== "admin") {
-    // Non-admins only see projects they are members of
     query = {
       $or: [{ createdBy: userId }, { "members.user": userId }],
     };
@@ -65,7 +64,17 @@ const getProjects = async (userId, userRole) => {
     .populate("members.user", "name email role")
     .sort({ createdAt: -1 });
 
-  return projects;
+  // Add bug count to each project
+  const projectsWithCount = await Promise.all(
+    projects.map(async (project) => {
+      const bugCount = await Bug.countDocuments({ project: project._id });
+      const obj = project.toObject();
+      obj.bugCount = bugCount;
+      return obj;
+    })
+  );
+
+  return projectsWithCount;
 };
 
 /**
