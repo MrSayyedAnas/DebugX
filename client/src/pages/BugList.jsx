@@ -25,6 +25,8 @@ const statusLabels = {
     closed: "Closed",
 };
 
+const [filterAssigned, setFilterAssigned] = useState(false);
+
 export default function BugList() {
     const { projectId } = useParams();
     const navigate = useNavigate();
@@ -100,7 +102,8 @@ export default function BugList() {
     const filtered = bugs.filter((b) => {
         const s = filterStatus === "all" || b.status === filterStatus;
         const p = filterPriority === "all" || b.priority === filterPriority;
-        return s && p;
+        const a = !filterAssigned || b.assignedTo?._id === user?._id || b.assignedTo === user?._id;
+        return s && p && a;
     });
 
     return (
@@ -164,14 +167,26 @@ export default function BugList() {
                         <option value="critical">Critical</option>
                     </select>
 
+                    <button
+                        onClick={() => setFilterAssigned(!filterAssigned)}
+                        className={`text-xs px-3 py-2 rounded-lg border transition-colors font-medium ${filterAssigned
+                                ? "bg-red-600 border-red-600 text-white"
+                                : "border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500"
+                            }`}
+                    >
+                        👤 Assigned to Me
+                    </button>
+
                     {(filterStatus !== "all" || filterPriority !== "all") && (
                         <button
-                            onClick={() => { setFilterStatus("all"); setFilterPriority("all"); }}
+                            onClick={() => { setFilterStatus("all"); setFilterPriority("all"); setFilterAssigned(false); }}
                             className="text-xs text-zinc-400 hover:text-white px-3 py-2 rounded-lg border border-zinc-700 hover:border-zinc-500 transition-colors"
                         >
                             Clear filters
                         </button>
                     )}
+
+
 
                     {/* Stats pills */}
                     <div className="ml-auto flex items-center gap-2">
