@@ -43,38 +43,52 @@ const PriorityBadge = ({ priority }) => {
 
 export default function Dashboard() {
   const [projects, setProjects] = useState([])
+  const [selectedProjectId, setSelectedProjectId] = useState(null)
   const [stats, setStats] = useState(null)
   const [recentBugs, setRecentBugs] = useState([])
   const [loading, setLoading] = useState(true)
+  const [statsLoading, setStatsLoading] = useState(false)
   const navigate = useNavigate()
   const { user } = useAuth()
 
   useEffect(() => {
-    fetchData()
+    fetchProjects()
   }, [])
 
-  const fetchData = async () => {
+  useEffect(() => {
+    if (selectedProjectId) fetchProjectStats(selectedProjectId)
+  }, [selectedProjectId])
+
+  const fetchProjects = async () => {
     try {
-      // Fetch projects
-      const projectsRes = await API.get('/projects')
-      const projectsList = projectsRes.data.data.projects
-      setProjects(projectsList)
-
-      // Fetch stats for first project if exists
-      if (projectsList.length > 0) {
-        const statsRes = await API.get(`/stats/projects/${projectsList[0]._id}`)
-        setStats(statsRes.data.data.stats)
-
-        // Fetch recent bugs
-        const bugsRes = await API.get(`/bugs/project/${projectsList[0]._id}`)
-        setRecentBugs(bugsRes.data.data.bugs.slice(0, 5))
-      }
+      const res = await API.get('/projects')
+      const list = res.data.data.projects
+      setProjects(list)
+      if (list.length > 0) setSelectedProjectId(list[0]._id)
     } catch (err) {
       console.error('Dashboard error:', err)
     } finally {
       setLoading(false)
     }
   }
+
+  const fetchProjectStats = async (projectId) => {
+    try {
+      setStatsLoading(true)
+      const [statsRes, bugsRes] = await Promise.all([
+        API.get(`/stats/projects/${projectId}`),
+        API.get(`/bugs/project/${projectId}`),
+      ])
+      setStats(statsRes.data.data.stats)
+      setRecentBugs(bugsRes.data.data.bugs?.slice(0, 5) || [])
+    } catch (err) {
+      console.error('Stats error:', err)
+    } finally {
+      setStatsLoading(false)
+    }
+  }
+
+  const selectedProject = projects.find(p => p._id === selectedProjectId)
 
   if (loading) return (
     <Layout>
@@ -88,12 +102,28 @@ export default function Dashboard() {
     <Layout>
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <div>
-          <h2 className="text-2xl font-bold text-white">Dashboard</h2>
-          <p className="text-gray-500 text-sm mt-1">
-            {projects.length > 0 ? `Showing stats for: ${projects[0]?.name}` : 'No projects yet'}
-          </p>
+        <div className="flex items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Dashboard</h2>
+            <p className="text-gray-500 text-sm mt-1">
+              {projects.length > 0 ? 'Select a project to view stats' : 'No projects yet'}
+            </p>
+          </div>
+
+          {/* Project Selector Dropdown */}
+          {projects.length > 0 && (
+            <select
+              value={selectedProjectId || ''}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              className="bg-zinc-900 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-red-600 transition-colors ml-2"
+            >
+              {projects.map((p) => (
+                <option key={p._id} value={p._id}>{p.name}</option>
+              ))}
+            </select>
+          )}
         </div>
+
         {user?.role === 'admin' && (
           <button
             onClick={() => navigate('/projects')}
@@ -105,7 +135,6 @@ export default function Dashboard() {
       </div>
 
       {projects.length === 0 ? (
-        /* Empty State */
         <div className="flex flex-col items-center justify-center h-64 border border-dashed border-zinc-700 rounded-2xl">
           <p className="text-4xl mb-4">📁</p>
           <p className="text-white font-medium">No projects yet</p>
@@ -121,33 +150,25 @@ export default function Dashboard() {
         </div>
       ) : (
         <>
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard
-              title="Total Bugs"
-              value={stats?.bugs?.total || 0}
-              subtitle="All time"
-              color="text-white"
-            />
-            <StatCard
-              title="Open Bugs"
-              value={stats?.bugs?.byStatus?.open || 0}
-              subtitle="Needs attention"
-              color="text-red-500"
-            />
-            <StatCard
-              title="In Progress"
-              value={stats?.bugs?.byStatus?.in_progress || 0}
-              subtitle="Being worked on"
-              color="text-yellow-500"
-            />
-            <StatCard
-              title="Resolved"
-              value={(stats?.bugs?.byStatus?.resolved || 0) + (stats?.bugs?.byStatus?.closed || 0)}
-              subtitle="Fixed bugs"
-              color="text-green-500"
-            />
-          </div>
+          {/* Stats loading overlay */}
+          {statsLoading ? (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 animate-pulse">
+                  <div className="h-3 bg-zinc-800 rounded w-1/2 mb-3" />
+                  <div className="h-8 bg-zinc-800 rounded w-1/3" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* Stats Grid */
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <StatCard title="Total Bugs" value={stats?.bugs?.total || 0} subtitle="All time" color="text-white" />
+              <StatCard title="Open Bugs" value={stats?.bugs?.byStatus?.open || 0} subtitle="Needs attention" color="text-red-500" />
+              <StatCard title="In Progress" value={stats?.bugs?.byStatus?.in_progress || 0} subtitle="Being worked on" color="text-yellow-500" />
+              <StatCard title="Resolved" value={(stats?.bugs?.byStatus?.resolved || 0) + (stats?.bugs?.byStatus?.closed || 0)} subtitle="Fixed bugs" color="text-green-500" />
+            </div>
+          )}
 
           {/* Two Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -157,7 +178,7 @@ export default function Dashboard() {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-white font-semibold">Recent Bugs</h3>
                 <button
-                  onClick={() => navigate(`/projects/${projects[0]._id}/bugs`)}
+                  onClick={() => navigate(`/projects/${selectedProjectId}/bugs`)}
                   className="text-red-400 text-sm hover:text-red-300 transition"
                 >
                   View all →
@@ -170,7 +191,7 @@ export default function Dashboard() {
                   {recentBugs.map((bug) => (
                     <div
                       key={bug._id}
-                      onClick={() => navigate(`/bugs/${bug._id}`)}
+                      onClick={() => navigate(`/projects/${selectedProjectId}/bugs/${bug._id}`)}
                       className="flex items-center justify-between p-3 bg-zinc-900 rounded-lg cursor-pointer hover:bg-zinc-800 transition"
                     >
                       <div className="flex-1 min-w-0">
@@ -207,17 +228,13 @@ export default function Dashboard() {
                         <span className="text-white font-medium">{count}</span>
                       </div>
                       <div className="w-full bg-zinc-800 rounded-full h-2">
-                        <div
-                          className={`${color} h-2 rounded-full transition-all`}
-                          style={{ width: `${percent}%` }}
-                        />
+                        <div className={`${color} h-2 rounded-full transition-all`} style={{ width: `${percent}%` }} />
                       </div>
                     </div>
                   )
                 })}
               </div>
 
-              {/* Bugs by Category */}
               <h3 className="text-white font-semibold mt-6 mb-4">Bugs by Category</h3>
               <div className="grid grid-cols-2 gap-2">
                 {Object.entries(stats?.bugs?.byCategory || {}).map(([cat, count]) => (
@@ -234,10 +251,7 @@ export default function Dashboard() {
           <div className="mt-6 bg-zinc-950 border border-zinc-800 rounded-xl p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-white font-semibold">Your Projects</h3>
-              <button
-                onClick={() => navigate('/projects')}
-                className="text-red-400 text-sm hover:text-red-300 transition"
-              >
+              <button onClick={() => navigate('/projects')} className="text-red-400 text-sm hover:text-red-300 transition">
                 Manage →
               </button>
             </div>
@@ -246,21 +260,19 @@ export default function Dashboard() {
                 <div
                   key={project._id}
                   onClick={() => navigate(`/projects/${project._id}/bugs`)}
-                  className="bg-zinc-900 rounded-lg p-4 cursor-pointer hover:bg-zinc-800 transition border border-zinc-700 hover:border-red-500/50"
+                  className={`bg-zinc-900 rounded-lg p-4 cursor-pointer hover:bg-zinc-800 transition border hover:border-red-500/50 ${
+                    project._id === selectedProjectId ? 'border-red-500/50' : 'border-zinc-700'
+                  }`}
                 >
                   <p className="text-white font-medium">{project.name}</p>
                   <p className="text-gray-500 text-xs mt-1 truncate">{project.description}</p>
                   <div className="flex items-center justify-between mt-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      project.status === 'active'
-                        ? 'bg-green-500/20 text-green-400'
-                        : 'bg-gray-500/20 text-gray-400'
+                      project.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
                     }`}>
                       {project.status}
                     </span>
-                    <span className="text-gray-600 text-xs">
-                      {project.members?.length} members
-                    </span>
+                    <span className="text-gray-600 text-xs">{project.members?.length} members</span>
                   </div>
                 </div>
               ))}
