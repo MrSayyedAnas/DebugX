@@ -26,7 +26,7 @@ const classifyBug = async (bugId, title, description) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, description }),
-      signal: AbortSignal.timeout(5000), // 5 second timeout
+      signal: AbortSignal.timeout(60000), // 5 second timeout
     });
 
     if (!response.ok) {
