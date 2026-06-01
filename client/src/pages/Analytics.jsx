@@ -150,7 +150,7 @@ export default function Analytics() {
                     <LineChart data={trends}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
                       <XAxis dataKey="date" tick={{ fill: "#71717a", fontSize: 11 }} />
-                      <YAxis tick={{ fill: "#71717a", fontSize: 11 }} />
+                      <YAxis tick={{ fill: "#71717a", fontSize: 11 }} allowDecimals={false} />
                       <Tooltip
                         contentStyle={{ background: "#09090b", border: "1px solid #27272a", borderRadius: 8 }}
                         labelStyle={{ color: "#fff" }}
@@ -208,7 +208,7 @@ export default function Analytics() {
                   <BarChart data={teamData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
                     <XAxis dataKey="name" tick={{ fill: "#71717a", fontSize: 11 }} />
-                    <YAxis tick={{ fill: "#71717a", fontSize: 11 }} />
+                    <YAxis tick={{ fill: "#71717a", fontSize: 11 }} allowDecimals={false} />
                     <Tooltip
                       contentStyle={{ background: "#09090b", border: "1px solid #27272a", borderRadius: 8 }}
                       labelStyle={{ color: "#fff" }}
