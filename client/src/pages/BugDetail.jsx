@@ -279,11 +279,10 @@ export default function BugDetail() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${
-                activeTab === tab
+              className={`px-4 py-2 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${activeTab === tab
                   ? "border-red-500 text-white"
                   : "border-transparent text-zinc-500 hover:text-zinc-300"
-              }`}
+                }`}
             >
               {tab === "ai" ? "AI Analysis" : tab}
               {tab === "comments" && comments.length > 0 && (
@@ -408,13 +407,28 @@ export default function BugDetail() {
         {/* AI ANALYSIS TAB */}
         {activeTab === "ai" && (
           <div className="max-w-3xl space-y-4">
+            // ✅ With this
             {!bug.aiClassified ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-14 h-14 bg-zinc-900 rounded-2xl flex items-center justify-center mb-4">
+                <div className="w-14 h-14 bg-purple-950 border border-purple-800 rounded-2xl flex items-center justify-center mb-4 animate-pulse">
                   <span className="text-3xl">🤖</span>
                 </div>
-                <h3 className="text-white font-semibold mb-1">Not Yet Classified</h3>
-                <p className="text-zinc-500 text-sm">AI service will classify this bug shortly after creation.</p>
+                <h3 className="text-white font-semibold mb-2">AI is Analyzing...</h3>
+                <p className="text-zinc-500 text-sm mb-4">Our AI is classifying this bug in the background.</p>
+                <div className="flex items-center gap-2 bg-purple-950 border border-purple-800 rounded-lg px-4 py-2">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                  <span className="text-purple-300 text-xs font-medium">Processing with TF-IDF + Naive Bayes</span>
+                </div>
+                <button
+                  onClick={fetchBug}
+                  className="mt-4 text-xs text-zinc-500 hover:text-white border border-zinc-700 hover:border-zinc-500 px-3 py-1.5 rounded-lg transition"
+                >
+                  🔄 Check again
+                </button>
               </div>
             ) : (
               <>
