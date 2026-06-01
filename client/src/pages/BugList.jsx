@@ -25,8 +25,6 @@ const statusLabels = {
     closed: "Closed",
 };
 
-const [filterAssigned, setFilterAssigned] = useState(false);
-
 export default function BugList() {
     const { projectId } = useParams();
     const navigate = useNavigate();
@@ -42,6 +40,7 @@ export default function BugList() {
     const [formError, setFormError] = useState("");
     const [filterStatus, setFilterStatus] = useState("all");
     const [filterPriority, setFilterPriority] = useState("all");
+    const [filterAssigned, setFilterAssigned] = useState(false);
 
     const [form, setForm] = useState({
         title: "", description: "", priority: "medium", stepsToReproduce: "",
