@@ -2,17 +2,18 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-const navItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { path: '/projects', label: 'Projects', icon: '📁' },
-  ...(user?.role !== 'tester' ? [{ path: '/analytics', label: 'Analytics', icon: '📈' }] : []),
-]
-
 export default function Layout({ children }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  // Moved inside component so `user` is available
+  const navItems = [
+    { path: '/dashboard', label: 'Dashboard', icon: '📊' },
+    { path: '/projects', label: 'Projects', icon: '📁' },
+    ...(user?.role !== 'tester' ? [{ path: '/analytics', label: 'Analytics', icon: '📈' }] : []),
+  ]
 
   const handleLogout = () => {
     logout()

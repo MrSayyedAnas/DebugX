@@ -216,7 +216,7 @@ export default function BugList() {
                                 ? "Try clearing your filters."
                                 : "Report the first bug for this project."}
                         </p>
-                        {filterStatus === "all" && filterPriority === "all" && (
+                        {filterStatus === "all" && filterPriority === "all" && !isTester && (
                             <button
                                 onClick={() => setShowModal(true)}
                                 className="bg-red-600 hover:bg-red-500 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -231,7 +231,7 @@ export default function BugList() {
                         {filtered.map((bug) => (
                             <div
                                 key={bug._id}
-                                onClick={() => navigate(`/bugs/${bug._id}`)}
+                                onClick={() => navigate(`/projects/${projectId}/bugs/${bug._id}`)}
                                 className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-colors cursor-pointer group"
                             >
                                 <div className="flex items-start justify-between gap-3">
@@ -241,7 +241,7 @@ export default function BugList() {
                                                 {bug.title}
                                             </h3>
                                             {/* AI badge */}
-                                            {bug.aiClassification && (
+                                            {bug.aiClassified && (
                                                 <span className="flex items-center gap-1 text-xs bg-purple-900 text-purple-300 px-2 py-0.5 rounded-full font-medium shrink-0">
                                                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}

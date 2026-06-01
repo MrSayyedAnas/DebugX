@@ -153,11 +153,6 @@ export default function Login() {
               <div className="flex-1 h-px bg-white/10" />
             </div>
 
-            {/* Google */}
-            <button className="w-full h-14 rounded-2xl border border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.05] transition">
-              Continue with Google
-            </button>
-
             {/* Register */}
             <p className="text-center text-gray-500 mt-8">
               Don't have an account?{' '}
