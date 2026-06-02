@@ -64,14 +64,14 @@ export default function Login() {
       ))}
 
       {/* Card */}
-      <div className="relative z-10 w-full max-w-sm">
+      <div className="relative z-10 w-full max-w-md">
 
         {/* Card glow border */}
         <div className="relative bg-[#0a0a0a] border border-[#222] rounded-2xl p-10">
 
           {/* Top bar */}
           <div className="flex items-center justify-between mb-9">
-            <h1 className="text-lg font-bold text-white tracking-tight">
+            <h1 className="text-3xl font-bold text-white tracking-tight">
               Debug<span className="text-red-500">X</span>
             </h1>
             <span className="text-[10px] bg-[#1a0505] border border-[#3f0f0f] text-red-400 px-3 py-1 rounded-full tracking-wide">
@@ -158,15 +158,6 @@ export default function Login() {
             <div className="flex-1 h-px bg-[#151515]" />
             <span className="text-[11px] text-zinc-800">or continue with</span>
             <div className="flex-1 h-px bg-[#151515]" />
-          </div>
-
-          {/* Social */}
-          <div className="flex gap-3 mb-6">
-            {['G', 'GH', 'f'].map((s, i) => (
-              <button key={i} className="flex-1 bg-[#0a0a0a] border border-[#1c1c1c] hover:border-red-600 text-zinc-700 hover:text-red-500 rounded-xl py-3 text-xs font-semibold transition">
-                {s}
-              </button>
-            ))}
           </div>
 
           {/* Register */}
