@@ -11,7 +11,7 @@ import {
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 const StatCard = ({ title, value, subtitle, color, icon: Icon, iconColor }) => (
-  <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 relative overflow-hidden group hover:border-zinc-700 transition-colors">
+  <div className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-6 relative overflow-hidden group hover:border-zinc-700 transition-colors">
     {/* Background glow */}
     <div className={`absolute top-0 right-0 w-20 h-20 rounded-full opacity-5 blur-xl ${iconColor}`} />
     <div className="flex items-start justify-between">
@@ -194,7 +194,7 @@ export default function Dashboard() {
           {statsLoading ? (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 animate-pulse">
+                <div key={i} className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-6 animate-pulse">
                   <div className="h-3 bg-zinc-800 rounded w-1/2 mb-3" />
                   <div className="h-8 bg-zinc-800 rounded w-1/3" />
                 </div>
@@ -237,7 +237,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {/* Recent Bugs */}
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6">
+            <div className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-white font-semibold">Recent Bugs</h3>
                 <button
@@ -274,7 +274,7 @@ export default function Dashboard() {
             </div>
 
             {/* Priority + Category breakdown */}
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6">
+            <div className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-6">
               <h3 className="text-white font-semibold mb-4">Bugs by Priority</h3>
               <div className="space-y-3">
                 {[
@@ -316,7 +316,7 @@ export default function Dashboard() {
           </div>
 
           {/* ── Projects Grid ────────────────────────────────────────────── */}
-          <div className="mt-6 bg-zinc-950 border border-zinc-800 rounded-xl p-6">
+          <div className="mt-6 bg-[#1e1d1c] border border-zinc-800 rounded-xl p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-white font-semibold flex items-center gap-2">
                 <FolderOpen size={16} className="text-red-400" />

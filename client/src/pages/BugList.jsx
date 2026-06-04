@@ -205,7 +205,7 @@ export default function BugList() {
                 {loading ? (
                     <div className="space-y-3">
                         {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 animate-pulse">
+                            <div key={i} className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-4 animate-pulse">
                                 <div className="h-4 bg-zinc-800 rounded w-1/3 mb-3" />
                                 <div className="h-3 bg-zinc-800 rounded w-2/3" />
                             </div>
@@ -242,8 +242,8 @@ export default function BugList() {
                             <div
                                 key={bug._id}
                                 // ✅ FIXED: was navigate(`/projects/${projectId}/bugs/${bug._id}`)
-                                onClick={() => navigate(`/bugs/${bug._id}`)}
-                                className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-colors cursor-pointer group"
+                                onClick={() => navigate(`/projects/${projectId}/bugs/${bug._id}`)}
+                                className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-colors cursor-pointer group"
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="flex-1 min-w-0">
@@ -309,7 +309,7 @@ export default function BugList() {
                     onClick={() => setShowModal(false)}
                 >
                     <div
-                        className="bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto"
+                        className="bg-[#1e1d1c] border border-zinc-800 rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between mb-5">

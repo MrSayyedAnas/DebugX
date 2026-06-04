@@ -113,7 +113,7 @@ export default function Analytics() {
         {loading ? (
           <div className="grid grid-cols-2 gap-6">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 animate-pulse h-48" />
+              <div key={i} className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-5 animate-pulse h-48" />
             ))}
           </div>
         ) : projects.length === 0 ? (
@@ -141,7 +141,7 @@ export default function Analytics() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
               {/* Bug Trends Line Chart */}
-              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5">
+              <div className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-5">
                 <h3 className="text-white font-semibold text-sm mb-4">Bug Trends</h3>
                 {trends.length === 0 ? (
                   <EmptyChart message="No trend data available" />
@@ -165,7 +165,7 @@ export default function Analytics() {
               </div>
 
               {/* Status Distribution Pie */}
-              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5">
+              <div className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-5">
                 <h3 className="text-white font-semibold text-sm mb-4">Status Distribution</h3>
                 {statusDist.length === 0 ? (
                   <EmptyChart message="No bugs in this project yet" />
@@ -199,7 +199,7 @@ export default function Analytics() {
             </div>
 
             {/* Team Performance Bar Chart */}
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 mb-6">
+            <div className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-5 mb-6">
               <h3 className="text-white font-semibold text-sm mb-4">Team Performance</h3>
               {teamData.length === 0 ? (
                 <EmptyChart message="No team data available" />
@@ -223,7 +223,7 @@ export default function Analytics() {
 
             {/* Team Table */}
             {teamData.length > 0 && (
-              <div className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden">
+              <div className="bg-[#1e1d1c] border border-zinc-800 rounded-xl overflow-hidden">
                 <div className="p-5 border-b border-zinc-800">
                   <h3 className="text-white font-semibold text-sm">Developer Metrics</h3>
                 </div>
@@ -282,7 +282,7 @@ export default function Analytics() {
 
 function StatCard({ label, value, color }) {
   return (
-    <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+    <div className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-4">
       <p className="text-zinc-500 text-xs mb-1">{label}</p>
       <p className={`text-2xl font-bold ${color}`}>{value}</p>
     </div>

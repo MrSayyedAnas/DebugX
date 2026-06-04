@@ -44,7 +44,7 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#070B14] text-white relative overflow-hidden">
+    <div className="min-h-screen flex bg-[#1e1d1c] text-white relative overflow-hidden">
 
       {/* Background Effects */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,0,0,0.08),transparent_35%)]" />
@@ -53,7 +53,7 @@ export default function Layout({ children }) {
       {/* Sidebar */}
       <aside
         className={`${sidebarOpen ? 'w-64' : 'w-20'
-          } relative z-10 bg-[#0B101B]/90 backdrop-blur-xl border-r border-red-500/10 flex flex-col transition-all duration-300`}
+          } relative z-10 bg-[#1e1d1c]/90 backdrop-blur-xl border-r border-red-500/10 flex flex-col transition-all duration-300`}
       >
         {/* Logo */}
         <div className="h-20 px-5 flex items-center justify-between border-b border-white/5">
@@ -129,7 +129,7 @@ export default function Layout({ children }) {
       <div className="flex-1 flex flex-col relative z-10">
 
         {/* Top Bar */}
-        <header className="h-20 px-8 flex items-center justify-between border-b border-white/5 bg-[#0B101B]/50 backdrop-blur-xl">
+        <header className="h-20 px-8 flex items-center justify-between border-b border-white/5 bg-[#1e1d1c]/50 backdrop-blur-xl">
 
           <div>
             <p className="text-gray-400 text-sm">

@@ -155,7 +155,7 @@ export default function BugDetail() {
     <Layout>
       <div className="p-6 max-w-5xl mx-auto space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 animate-pulse">
+          <div key={i} className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-5 animate-pulse">
             <div className="h-4 bg-zinc-800 rounded w-1/3 mb-3" />
             <div className="h-3 bg-zinc-800 rounded w-2/3" />
           </div>
@@ -299,7 +299,7 @@ export default function BugDetail() {
           <div className="grid grid-cols-3 gap-6">
             {/* Main content */}
             <div className="col-span-2 space-y-5">
-              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5">
+              <div className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-5">
                 <h3 className="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-3">Description</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">
                   {bug.description || "No description provided."}
@@ -307,7 +307,7 @@ export default function BugDetail() {
               </div>
 
               {bug.stepsToReproduce && (
-                <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-5">
+                <div className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-5">
                   <h3 className="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-3">Steps to Reproduce</h3>
                   <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">{bug.stepsToReproduce}</p>
                 </div>
@@ -316,13 +316,13 @@ export default function BugDetail() {
               {(bug.expectedBehavior || bug.actualBehavior) && (
                 <div className="grid grid-cols-2 gap-4">
                   {bug.expectedBehavior && (
-                    <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+                    <div className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-4">
                       <h3 className="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-2">Expected</h3>
                       <p className="text-zinc-300 text-sm leading-relaxed">{bug.expectedBehavior}</p>
                     </div>
                   )}
                   {bug.actualBehavior && (
-                    <div className="bg-zinc-950 border border-red-900 rounded-xl p-4">
+                    <div className="bg-[#1e1d1c] border border-red-900 rounded-xl p-4">
                       <h3 className="text-red-400 text-xs font-medium uppercase tracking-wider mb-2">Actual</h3>
                       <p className="text-zinc-300 text-sm leading-relaxed">{bug.actualBehavior}</p>
                     </div>
@@ -333,7 +333,7 @@ export default function BugDetail() {
 
             {/* Sidebar meta */}
             <div className="space-y-4">
-              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 space-y-4">
+              <div className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-4 space-y-4">
                 <MetaRow label="Reported by" value={bug.reportedBy?.name || bug.reportedBy || "—"} />
                 <MetaRow label="Assigned to" value={bug.assignedTo?.name || bug.assignedTo || "Unassigned"} />
                 <MetaRow label="Priority" value={bug.priority || "medium"} />
@@ -363,7 +363,7 @@ export default function BugDetail() {
               </div>
             ) : (
               comments.map((c, i) => (
-                <div key={c._id || i} className="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+                <div key={c._id || i} className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-full bg-red-900 flex items-center justify-center text-xs font-medium text-red-300">
@@ -383,7 +383,7 @@ export default function BugDetail() {
             )}
 
             {/* Add comment */}
-            <form onSubmit={handleComment} className="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+            <form onSubmit={handleComment} className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-4">
               <textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
@@ -432,7 +432,7 @@ export default function BugDetail() {
               </div>
             ) : (
               <>
-                <div className="bg-zinc-950 border border-red-900/50 rounded-xl p-5">
+                <div className="bg-[#1e1d1c] border border-red-900/50 rounded-xl p-5">
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-lg">🤖</span>
                     <h3 className="text-red-400 text-xs font-medium uppercase tracking-wider">AI Classification</h3>
@@ -459,7 +459,7 @@ export default function BugDetail() {
                   </div>
                 </div>
 
-                <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+                <div className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-4">
                   <p className="text-zinc-500 text-xs leading-relaxed">
                     This bug was automatically classified by DebugX AI using TF-IDF vectorization and
                     Naive Bayes classification. The confidence score indicates how certain the model is
@@ -478,7 +478,7 @@ export default function BugDetail() {
             onClick={() => setShowAssignModal(false)}
           >
             <div
-              className="bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-sm p-6"
+              className="bg-[#1e1d1c] border border-zinc-800 rounded-2xl w-full max-w-sm p-6"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-5">
@@ -534,7 +534,7 @@ export default function BugDetail() {
             onClick={() => setShowEditModal(false)}
           >
             <div
-              className="bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto"
+              className="bg-[#1e1d1c] border border-zinc-800 rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-5">
@@ -645,7 +645,7 @@ export default function BugDetail() {
             onClick={() => setShowDeleteConfirm(false)}
           >
             <div
-              className="bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-sm p-6"
+              className="bg-[#1e1d1c] border border-zinc-800 rounded-2xl w-full max-w-sm p-6"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="w-12 h-12 bg-red-950 rounded-xl flex items-center justify-center mb-4">

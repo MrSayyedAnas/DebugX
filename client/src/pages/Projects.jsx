@@ -156,7 +156,7 @@ export default function Projects() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 animate-pulse">
+              <div key={i} className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-5 animate-pulse">
                 <div className="h-4 bg-zinc-800 rounded w-2/3 mb-3" />
                 <div className="h-3 bg-zinc-800 rounded w-full mb-2" />
                 <div className="h-3 bg-zinc-800 rounded w-4/5" />
@@ -187,7 +187,7 @@ export default function Projects() {
             {projects.map((project) => (
               <div
                 key={project._id}
-                className="bg-zinc-950 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-colors group cursor-pointer"
+                className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-colors group cursor-pointer"
                 onClick={() => navigate(`/projects/${project._id}/bugs`)}
               >
                 <div className="flex items-start justify-between mb-3">
@@ -256,7 +256,7 @@ export default function Projects() {
           onClick={() => setShowMembersModal(false)}
         >
           <div
-            className="bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-md p-6"
+            className="bg-[#1e1d1c] border border-zinc-800 rounded-2xl w-full max-w-md p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
@@ -330,7 +330,7 @@ export default function Projects() {
           onClick={() => setShowModal(false)}
         >
           <div
-            className="bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-md p-6"
+            className="bg-[#1e1d1c] border border-zinc-800 rounded-2xl w-full max-w-md p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
@@ -400,7 +400,7 @@ export default function Projects() {
           onClick={() => setDeleteConfirm(null)}
         >
           <div
-            className="bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-sm p-6"
+            className="bg-[#1e1d1c] border border-zinc-800 rounded-2xl w-full max-w-sm p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-12 h-12 bg-red-950 rounded-xl flex items-center justify-center mb-4">
