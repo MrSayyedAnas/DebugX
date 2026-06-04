@@ -54,14 +54,11 @@ export default function BugList() {
                 api.get(`/bugs/project/${projectId}`),
             ]);
 
-            // Fix project extraction
             const projData = projRes.data.data || projRes.data;
             setProject(projData?.project || projData);
 
-            // ✅ Actually set the bugs
             const bugsData = bugsRes.data.data || bugsRes.data;
             setBugs(Array.isArray(bugsData) ? bugsData : bugsData?.bugs || []);
-
         } catch (err) {
             setError("Failed to load bugs.");
         } finally {
@@ -82,13 +79,13 @@ export default function BugList() {
             setSubmitting(true);
             setFormError("");
             await api.post("/bugs", {
-                projectId: projectId,      // ✅ correct field name
+                projectId,
                 title: form.title.trim(),
                 description: form.description.trim(),
                 priority: form.priority,
                 stepsToReproduce: form.stepsToReproduce,
             });
-            setForm({ title: "", description: "", priority: "medium", stepsToReproduce: "", expectedBehavior: "", actualBehavior: "" });
+            setForm({ title: "", description: "", priority: "medium", stepsToReproduce: "" });
             setShowModal(false);
             fetchData();
         } catch (err) {
@@ -168,10 +165,11 @@ export default function BugList() {
 
                     <button
                         onClick={() => setFilterAssigned(!filterAssigned)}
-                        className={`text-xs px-3 py-2 rounded-lg border transition-colors font-medium ${filterAssigned
+                        className={`text-xs px-3 py-2 rounded-lg border transition-colors font-medium ${
+                            filterAssigned
                                 ? "bg-red-600 border-red-600 text-white"
                                 : "border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500"
-                            }`}
+                        }`}
                     >
                         👤 Assigned to Me
                     </button>
@@ -184,8 +182,6 @@ export default function BugList() {
                             Clear filters
                         </button>
                     )}
-
-
 
                     {/* Stats pills */}
                     <div className="ml-auto flex items-center gap-2">
@@ -205,7 +201,7 @@ export default function BugList() {
                     <div className="mb-4 p-3 bg-red-950 border border-red-800 rounded-lg text-red-400 text-sm">{error}</div>
                 )}
 
-                {/* Loading */}
+                {/* Loading skeleton */}
                 {loading ? (
                     <div className="space-y-3">
                         {[1, 2, 3, 4].map(i => (
@@ -245,7 +241,8 @@ export default function BugList() {
                         {filtered.map((bug) => (
                             <div
                                 key={bug._id}
-                                onClick={() => navigate(`/projects/${projectId}/bugs/${bug._id}`)}
+                                // ✅ FIXED: was navigate(`/projects/${projectId}/bugs/${bug._id}`)
+                                onClick={() => navigate(`/bugs/${bug._id}`)}
                                 className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-colors cursor-pointer group"
                             >
                                 <div className="flex items-start justify-between gap-3">
@@ -254,7 +251,6 @@ export default function BugList() {
                                             <h3 className="text-white font-medium text-sm group-hover:text-red-400 transition-colors truncate">
                                                 {bug.title}
                                             </h3>
-                                            {/* AI badge */}
                                             {bug.aiClassified && (
                                                 <span className="flex items-center gap-1 text-xs bg-purple-900 text-purple-300 px-2 py-0.5 rounded-full font-medium shrink-0">
                                                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -270,7 +266,6 @@ export default function BugList() {
                                         </p>
                                     </div>
 
-                                    {/* Badges */}
                                     <div className="flex items-center gap-2 shrink-0">
                                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${priorityColors[bug.priority] || priorityColors.medium}`}>
                                             {bug.priority || "medium"}
@@ -307,7 +302,7 @@ export default function BugList() {
                 )}
             </div>
 
-            {/* Create Bug Modal */}
+            {/* ── Create Bug Modal ─────────────────────────────────────────────── */}
             {showModal && (
                 <div
                     className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
@@ -377,7 +372,7 @@ export default function BugList() {
                                 <textarea
                                     value={form.stepsToReproduce}
                                     onChange={(e) => setForm({ ...form, stepsToReproduce: e.target.value })}
-                                    placeholder="1. Go to...&#10;2. Click on...&#10;3. See error"
+                                    placeholder={"1. Go to...\n2. Click on...\n3. See error"}
                                     rows={3}
                                     className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm placeholder-zinc-600 focus:outline-none focus:border-red-600 transition-colors resize-none"
                                 />
