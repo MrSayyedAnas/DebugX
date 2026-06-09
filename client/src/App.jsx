@@ -10,7 +10,7 @@ import Projects from './pages/Projects'
 import BugList from './pages/BugList'
 import BugDetail from './pages/BugDetail'
 import Analytics from './pages/Analytics'
-
+import Home from './pages/Home'
 // Protected Route — redirects to login if not authenticated
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth()
@@ -40,35 +40,88 @@ const PublicRoute = ({ children }) => {
 function AppRoutes() {
   return (
     <Routes>
+      {/* Landing Page */}
+      <Route path="/" element={<Home />} />
+
       {/* Public Routes */}
-      <Route path="/login" element={
-        <PublicRoute><Login /></PublicRoute>
-      } />
-      <Route path="/register" element={
-        <PublicRoute><Register /></PublicRoute>
-      } />
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        }
+      />
+
+      <Route
+        path="/register"
+        element={
+          <PublicRoute>
+            <Register />
+          </PublicRoute>
+        }
+      />
 
       {/* Protected Routes */}
-      <Route path="/dashboard" element={
-        <ProtectedRoute><Dashboard /></ProtectedRoute>
-      } />
-      <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
-      <Route path="/projects/:projectId/bugs" element={<ProtectedRoute><BugList /></ProtectedRoute>} />
-      <Route path="/projects/:projectId/bugs/:bugId" element={<ProtectedRoute><BugDetail /></ProtectedRoute>} />
-      <Route path="/analytics" element={
-        <ProtectedRoute><Analytics /></ProtectedRoute>
-      } />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Default redirect */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route
+        path="/projects"
+        element={
+          <ProtectedRoute>
+            <Projects />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/projects/:projectId/bugs"
+        element={
+          <ProtectedRoute>
+            <BugList />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/projects/:projectId/bugs/:bugId"
+        element={
+          <ProtectedRoute>
+            <BugDetail />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/analytics"
+        element={
+          <ProtectedRoute>
+            <Analytics />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 404 */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>

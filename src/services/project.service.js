@@ -68,6 +68,7 @@ const getProjects = async (userId, userRole) => {
   const projectsWithCount = await Promise.all(
     projects.map(async (project) => {
       const bugCount = await Bug.countDocuments({ project: project._id });
+      console.log(`"${project.name}" → bugCount: ${bugCount}`);
       const obj = project.toObject();
       obj.bugCount = bugCount;
       return obj;
