@@ -29,8 +29,9 @@ jobs:
 
       - name: Notify DebugX (Success)
         if: steps.tests.outcome == 'success'
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
           BUG_ID=$(echo "$COMMIT_MSG" | grep -oP '(?<=#)[a-f0-9]{24}' || true)
           if [ -n "$BUG_ID" ]; then
             curl -X POST ${{ secrets.DEBUGX_API_URL }}/api/v1/ci/webhook \
@@ -49,8 +50,9 @@ jobs:
 
       - name: Notify DebugX (Failure)
         if: steps.tests.outcome == 'failure'
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
           BUG_ID=$(echo "$COMMIT_MSG" | grep -oP '(?<=#)[a-f0-9]{24}' || true)
           if [ -n "$BUG_ID" ]; then
             curl -X POST ${{ secrets.DEBUGX_API_URL }}/api/v1/ci/webhook \
