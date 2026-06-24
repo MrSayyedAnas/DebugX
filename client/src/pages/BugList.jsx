@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../api/axios";
@@ -41,6 +42,7 @@ export default function BugList() {
     const [filterStatus, setFilterStatus] = useState("all");
     const [filterPriority, setFilterPriority] = useState("all");
     const [filterAssigned, setFilterAssigned] = useState(false);
+    const [search, setSearch] = useState("");
 
     const [form, setForm] = useState({
         title: "", description: "", priority: "medium", stepsToReproduce: "",
@@ -61,6 +63,7 @@ export default function BugList() {
             setBugs(Array.isArray(bugsData) ? bugsData : bugsData?.bugs || []);
         } catch (err) {
             setError("Failed to load bugs.");
+            toast.error("Failed to load bugs.");
         } finally {
             setLoading(false);
         }
@@ -85,12 +88,14 @@ export default function BugList() {
                 priority: form.priority,
                 stepsToReproduce: form.stepsToReproduce,
             });
-            setForm({ title: "", description: "", priority: "medium", stepsToReproduce: "" });
             setShowModal(false);
             fetchData();
+            toast.success("Bug reported successfully!");
         } catch (err) {
-            setFormError(err.response?.data?.message || "Failed to create bug.");
-        } finally {
+            const msg = err.response?.data?.message || "Failed to create bug.";
+            setFormError(msg);
+            toast.error(msg);
+        }finally {
             setSubmitting(false);
         }
     };
@@ -99,7 +104,8 @@ export default function BugList() {
         const s = filterStatus === "all" || b.status === filterStatus;
         const p = filterPriority === "all" || b.priority === filterPriority;
         const a = !filterAssigned || b.assignedTo?._id === user?._id || b.assignedTo === user?._id;
-        return s && p && a;
+        const q = !search.trim() || b.title.toLowerCase().includes(search.toLowerCase()) || b.description?.toLowerCase().includes(search.toLowerCase());
+        return s && p && a && q;
     });
 
     return (
@@ -138,6 +144,21 @@ export default function BugList() {
                 </div>
 
                 {/* Filters */}
+                {/* Search */}
+                <div className="relative mb-3">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                    </svg>
+                    <input
+                        type="text"
+                        placeholder="Search bugs by title or description..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-lg pl-9 pr-4 py-2 text-sm placeholder-zinc-600 focus:outline-none focus:border-red-600 transition-colors"
+                    />
+                </div>
+
+                {/* Filters */}
                 <div className="flex items-center gap-3 mb-6 flex-wrap">
                     <select
                         value={filterStatus}
@@ -165,11 +186,10 @@ export default function BugList() {
 
                     <button
                         onClick={() => setFilterAssigned(!filterAssigned)}
-                        className={`text-xs px-3 py-2 rounded-lg border transition-colors font-medium ${
-                            filterAssigned
+                        className={`text-xs px-3 py-2 rounded-lg border transition-colors font-medium ${filterAssigned
                                 ? "bg-red-600 border-red-600 text-white"
                                 : "border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500"
-                        }`}
+                            }`}
                     >
                         👤 Assigned to Me
                     </button>
@@ -241,7 +261,6 @@ export default function BugList() {
                         {filtered.map((bug) => (
                             <div
                                 key={bug._id}
-                                // ✅ FIXED: was navigate(`/projects/${projectId}/bugs/${bug._id}`)
                                 onClick={() => navigate(`/projects/${projectId}/bugs/${bug._id}`)}
                                 className="bg-[#1e1d1c] border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-colors cursor-pointer group"
                             >
