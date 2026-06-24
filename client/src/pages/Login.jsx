@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import API from '../api/axios'
@@ -23,9 +24,12 @@ export default function Login() {
     try {
       const res = await API.post('/auth/login', form)
       login(res.data.data.user, res.data.data.token)
+      toast.success('Welcome back!')
       navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed')
+      const msg = err.response?.data?.message || 'Login failed'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }

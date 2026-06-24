@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import API from '../api/axios'
@@ -28,11 +29,12 @@ export default function Register() {
     try {
       const res = await API.post('/auth/register', form)
       login(res.data.data.user, res.data.data.token)
+      toast.success('Account created successfully!')
       navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed')
-    } finally {
-      setLoading(false)
+      const msg = err.response?.data?.message || 'Registration failed'
+      setError(msg)
+      toast.error(msg)
     }
   }
 
