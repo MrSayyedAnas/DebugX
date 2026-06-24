@@ -59,10 +59,10 @@ def classify():
         "category": "ui_bug",
         "priority": "high",
         "confidence": 0.89
-      }
+      },
+      "warning": "Input truncated to 128 tokens. Add more detail for better results."  // only if text is long
     }
     """
-    # Validate request
     data = request.get_json()
 
     if not data:
@@ -71,7 +71,7 @@ def classify():
             "message": "Request body is required"
         }), 400
 
-    title = data.get("title", "").strip()
+    title       = data.get("title", "").strip()
     description = data.get("description", "").strip()
 
     if not title:
@@ -89,17 +89,22 @@ def classify():
     # Combine title + description for better classification
     text = f"{title} {description}".strip()
 
-    # Get prediction
+    # Warn if input will be truncated (BERT max is 128 tokens, ~100 words)
+    warning = None
+    if len(text.split()) > 100:
+        warning = "Input truncated to 128 tokens. Only the first ~100 words were used."
+
     result = classifier.predict(text)
 
     return jsonify({
         "success": True,
         "data": {
-            "category": result["category"],
-            "priority": result["priority"],
+            "category":   result["category"],
+            "priority":   result["priority"],
             "confidence": result["confidence"],
-            "details": result["details"]
-        }
+            "details":    result["details"]
+        },
+        "warning": warning
     })
 
 
@@ -109,7 +114,7 @@ def model_info():
     return jsonify({
         "success": True,
         "data": {
-            "model_type": "TF-IDF + Naive Bayes",
+            "model_type": "BERT (bert-base-uncased)",   # fixed: was "TF-IDF + Naive Bayes"
             "categories": [
                 "ui_bug", "performance", "security",
                 "functionality", "database", "network", "other"

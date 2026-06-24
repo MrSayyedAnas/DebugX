@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import toast from "react-hot-toast";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../api/axios";
@@ -62,7 +61,6 @@ export default function BugDetail() {
       setComments(Array.isArray(raw) ? raw : []);
     } catch {
       setError("Failed to load bug details.");
-      toast.error("Failed to load bug details.");
     } finally {
       setLoading(false);
     }
@@ -70,21 +68,13 @@ export default function BugDetail() {
 
   useEffect(() => { fetchBug(); }, [bugId]);
 
-  const STATUS_TRANSITIONS = {
-    open: ["in_progress", "closed"],
-    in_progress: ["open", "resolved", "closed"],
-    resolved: ["open", "closed"],
-    closed: ["open"],
-  };
-
   const handleStatusChange = async (newStatus) => {
     try {
       setUpdatingStatus(true);
       await api.patch(`/bugs/${bugId}/status`, { status: newStatus });
       setBug((prev) => ({ ...prev, status: newStatus }));
-      toast.success(`Status updated to "${statusLabels[newStatus]}"`);
     } catch {
-      toast.error("Failed to update status.");
+      setError("Failed to update status.");
     } finally {
       setUpdatingStatus(false);
     }
@@ -98,19 +88,19 @@ export default function BugDetail() {
       await api.post(`/bugs/${bugId}/comments`, { content: newComment });
       setNewComment("");
       fetchBug();
-      toast.success("Comment posted!");
     } catch {
-      toast.error("Failed to post comment.");
+      setError("Failed to post comment.");
+    } finally {
+      setPosting(false);
     }
   };
 
   const handleDelete = async () => {
     try {
       await api.delete(`/bugs/${bugId}`);
-      toast.success("Bug deleted.");
       navigate(`/projects/${bug?.project?._id}/bugs`);
     } catch {
-      toast.error("Failed to delete bug.");
+      setError("Failed to delete bug.");
     }
   };
 
@@ -121,9 +111,8 @@ export default function BugDetail() {
       await api.patch(`/bugs/${bugId}`, editForm);
       setShowEditModal(false);
       fetchBug();
-      toast.success("Bug updated successfully!");
     } catch {
-      toast.error("Failed to update bug.");
+      setError("Failed to update bug.");
     } finally {
       setSaving(false);
     }
@@ -134,9 +123,8 @@ export default function BugDetail() {
       await api.patch(`/bugs/${bugId}/assign`, { assigneeId });
       setShowAssignModal(false);
       fetchBug();
-      toast.success("Bug assigned successfully!");
     } catch {
-      toast.error("Failed to assign bug.");
+      setError("Failed to assign bug.");
     }
   };
 
@@ -274,12 +262,10 @@ export default function BugDetail() {
                   disabled={updatingStatus}
                   className="bg-zinc-900 border border-zinc-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-red-600 transition-colors disabled:opacity-50"
                 >
-                  <option value={bug.status}>
-                    {statusLabels[bug.status]} (current)
-                  </option>
-                  {(STATUS_TRANSITIONS[bug.status] || []).map((s) => (
-                    <option key={s} value={s}>{statusLabels[s]}</option>
-                  ))}
+                  <option value="open">Open</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="resolved">Resolved</option>
+                  <option value="closed">Closed</option>
                 </select>
               </>
             )}
@@ -294,8 +280,8 @@ export default function BugDetail() {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 text-sm font-medium capitalize transition-colors border-b-2 -mb-px ${activeTab === tab
-                ? "border-red-500 text-white"
-                : "border-transparent text-zinc-500 hover:text-zinc-300"
+                  ? "border-red-500 text-white"
+                  : "border-transparent text-zinc-500 hover:text-zinc-300"
                 }`}
             >
               {tab === "ai" ? "AI Analysis" : tab}

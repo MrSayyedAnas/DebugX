@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import API from '../api/axios'
@@ -85,7 +84,6 @@ export default function Dashboard() {
       if (list.length > 0) setSelected(list[0]._id)
     } catch (err) {
       console.error('Dashboard error:', err)
-      toast.error('Failed to load projects.')
     } finally {
       setLoading(false)
     }

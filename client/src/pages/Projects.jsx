@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../api/axios";
@@ -69,11 +68,8 @@ export default function Projects() {
       setForm({ name: "", description: "", status: "active" });
       setShowModal(false);
       fetchProjects();
-      toast.success("Project created successfully!");
     } catch (err) {
-      const msg = err.response?.data?.message || "Failed to create project.";
-      setFormError(msg);
-      toast.error(msg);
+      setFormError(err.response?.data?.message || "Failed to create project.");
     } finally {
       setSubmitting(false);
     }
@@ -84,9 +80,8 @@ export default function Projects() {
       await api.delete(`/projects/${id}`);
       setDeleteConfirm(null);
       fetchProjects();
-      toast.success("Project deleted.");
     } catch {
-      toast.error("Failed to delete project.");
+      setError("Failed to delete project.");
     }
   };
 
@@ -119,12 +114,10 @@ export default function Projects() {
     });
 
     setMemberEmail("");
-    setShowMembersModal(false);
-    toast.success("Member added successfully!");
+    setMemberError("✅ Member added successfully!");
+    setTimeout(() => setMemberError(""), 2000);
   } catch (err) {
-    const msg = err.response?.data?.message || "Failed to add member.";
-    setMemberError(msg);
-    toast.error(msg);
+    setMemberError(err.response?.data?.message || "Failed to add member.");
   } finally {
     setAddingMember(false);
   }
